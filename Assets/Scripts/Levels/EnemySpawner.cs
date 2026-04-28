@@ -1,18 +1,24 @@
-using UnityEngine;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using System.IO;
-using System.Collections.Generic;
-using UnityEngine.UI;
+using Newtonsoft.Json.Linq;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.UI;
+using static UnityEngine.UIElements.UxmlAttributeDescription;
 
 public class EnemySpawner : MonoBehaviour
 {
     public Image level_selector;
     public GameObject button;
     public GameObject enemy;
-    public SpawnPoint[] SpawnPoints;    
+    public SpawnPoint[] SpawnPoints;
+
+    // Add level Variables Storage, list probably. 
+    // List of Levels
+    // Current Level
+    int currentWave = 0;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -42,6 +48,13 @@ public class EnemySpawner : MonoBehaviour
         StartCoroutine(SpawnWave());
     }
 
+    // Load all the possible levels stored in the Json file. 
+    void LoadLevels() 
+    {
+        string json = File.ReadAllText("Assets/Resources/levels.json"); // Read Json File
+        // deserialize levels
+        Start();    // call Start
+    }
 
     IEnumerator SpawnWave()
     {
@@ -61,6 +74,7 @@ public class EnemySpawner : MonoBehaviour
         GameManager.Instance.state = GameManager.GameState.WAVEEND;
     }
 
+    // Make into general spawnEnemyGroup? 
     IEnumerator SpawnZombie()
     {
         SpawnPoint spawn_point = SpawnPoints[Random.Range(0, SpawnPoints.Length)];
