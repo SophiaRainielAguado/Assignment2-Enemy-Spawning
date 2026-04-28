@@ -63,8 +63,22 @@
         "enemy": "zombie",
         "count": "5 wave 3 * +",
         "hp": "35 wave *",
-        "sequence": [ 1, 4, 5 ]
+        "sequence": [ 1, 4, 5 ],
         "location": "random"
+      },
+      {
+        "enemy": "skeleton",
+        "count": "wave 3 /",
+        "hp": "35 wave *",
+        "sequence": [ 4, 2 ],
+        "location": "random red"
+      },
+      {
+        "enemy": "warlock",
+        "count": "wave 5 / 1 wave 5 % - *",
+        "hp": "75 50 wave * +",
+        "damage": "base 25 +",
+        "location": "random bone"
       }
     ]
   },
