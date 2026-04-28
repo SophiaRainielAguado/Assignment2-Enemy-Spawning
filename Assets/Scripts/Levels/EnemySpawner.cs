@@ -15,8 +15,8 @@ public class EnemySpawner : MonoBehaviour
     public GameObject enemy;
     public SpawnPoint[] SpawnPoints;
 
-    private List<JObject> levels; //error here
-    JObject currentLevel; // error here
+    private List<JObject> levels;
+    JObject currentLevel;
     int currentWave = 0;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -38,9 +38,25 @@ public class EnemySpawner : MonoBehaviour
     public void StartLevel(string levelname)
     {
         level_selector.gameObject.SetActive(false);
-        // this is not nice: we should not have to be required to tell the player directly that the level is starting
+        if (levels == null)
+        {
+            Debug.LogError("Levels not found.");
+            return;
+        }
+
+        // Find Level in Levels; loops through JObjects, looks at name. Return match
+        currentLevel = levels.FirstOrDefault(l => (string)l["name"] == levelname);
+        if (currentLevel == null)
+        {
+            Debug.LogError("Level not found:" + levelname);
+            return;
+        }
+
+        // Start first wave
+        currentWave = 1;    // increment wave count
+        // Assign the selected level when player clicks button
         GameManager.Instance.player.GetComponent<PlayerController>().StartLevel();
-        StartCoroutine(SpawnWave());
+        StartCoroutine(SpawnWave()); // pass current level into SpawnWave
     }
 
     public void NextWave()
