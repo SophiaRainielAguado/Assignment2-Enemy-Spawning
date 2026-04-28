@@ -18,11 +18,20 @@ public class EnemyInfo
 
 }
 
+public class SpawnCharacteristics
+{
+    public string enemy;
+    public string count;
+    public string hp;
+    public int delay;
+    public List<int> sequence;
+    public string location;
+}
 public class Level
 {
     public string name;
     public string waves;
-    public string spawns;
+    public List<SpawnCharacteristics> spawns;
 }
 
 
