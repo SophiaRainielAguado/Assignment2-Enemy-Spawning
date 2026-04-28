@@ -26,40 +26,54 @@
             }
         ]
    },
-   {
-       "name": "Medium",
-       "waves": 15,
-       "spawns": [
-            {
-                "enemy": "zombie",
-                "count": "5 wave 2 * +",
-                "hp": "25 wave *",
-                "delay": "5",
-                "sequence": [1,2,3],
-                "location": "random"
-            },
-            {
-                "enemy": "skeleton",
-                "count": "wave 2 /",
-                "hp": "25 wave *",
-                "sequence": [2, 2],
-                "location": "random red"
-            },
-            {
-                "enemy": "warlock",
-                "count": "wave 5 / 1 wave 5 % - *",
-                "hp": "75 50 wave * +",
-                "damage": "base 10 +",
-                "location": "random bone"
-            }
-        ]
-   },
+  {
+    "name": "Medium",
+    "waves": 15,
+    "spawns": [
+      {
+        "enemy": "zombie",
+        "count": "5 wave 2 * +",
+        "hp": "25 wave *",
+        "delay": "5",
+        "sequence": [ 1, 2, 3 ],
+        "location": "random"
+      },
+      {
+        "enemy": "skeleton",
+        "count": "wave 2 /",
+        "hp": "25 wave *",
+        "sequence": [ 2, 2 ],
+        "location": "random red"
+      },
+      {
+        "enemy": "warlock",
+        "count": "wave 5 / 1 wave 5 % - *",
+        "hp": "75 50 wave * +",
+        "damage": "base 10 +",
+        "location": "random bone"
+      }
+    ]
+  },
+  {
+    "name": "Hard",
+    content:
+    "waves": 25,
+    "spawns": [
+      {
+        "enemy": "zombie",
+        "count": "5 wave 3 * +",
+        "hp": "35 wave *",
+        "sequence": [ 1, 4, 5 ]
+        "location": "random"
+      }
+    ]
+  },
    {
        "name": "Endless",
        "spawns": [
             {
                 "enemy": "zombie",
-                "count": "5 wave 3 * +",
+                "count": "5 wave 4 * +",
                 "hp": "15 wave *",
                 "delay": "5",
                 "sequence": [1,2,3],
