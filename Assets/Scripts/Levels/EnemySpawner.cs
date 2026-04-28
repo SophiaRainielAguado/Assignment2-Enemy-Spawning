@@ -15,14 +15,14 @@ public class EnemySpawner : MonoBehaviour
     public GameObject enemy;
     public SpawnPoint[] SpawnPoints;
 
-    // Add level Variables Storage, list probably. 
-    // List of Levels
-    // Current Level
+    private List<JObject> levels; //error here
+    JObject currentLevel; // error here
     int currentWave = 0;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        LoadLevels();
         GameObject selector = Instantiate(button, level_selector.transform);
         selector.transform.localPosition = new Vector3(0, 130);
         selector.GetComponent<MenuSelectorController>().spawner = this;
@@ -48,12 +48,11 @@ public class EnemySpawner : MonoBehaviour
         StartCoroutine(SpawnWave());
     }
 
-    // Load all the possible levels stored in the Json file. 
     void LoadLevels() 
     {
-        string json = File.ReadAllText("Assets/Resources/levels.json"); // Read Json File
-        // deserialize levels
-        Start();    // call Start
+        TextAsset jsonFile = Resources.Load<TextAsset>("levels");   // Read Json File
+        JArray jsonArray = JArray.Parse(jsonFile.text);             // deserialize levels
+        levels = jsonArray.Children<JObject>().ToList();            // convert to list of JObject
     }
 
     IEnumerator SpawnWave()
