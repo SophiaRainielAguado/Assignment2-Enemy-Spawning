@@ -20,6 +20,9 @@ public class EnemyInfo
 
 public class EnemySpawner : MonoBehaviour
 {
+
+    Dictionary<string, EnemyInfo> enemies;
+
     public Image level_selector;
     public GameObject button;
     public GameObject enemy;
@@ -28,6 +31,14 @@ public class EnemySpawner : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        enemies = new Dictionary<string, EnemyInfo>();
+        var enemytext = Resources.Load<TextAsset>("enemies");
+        JToken jo = JToken.Parse(enemytext.text);
+        foreach(var enemy in jo)
+        {
+            EnemyInfo e = enemy.ToObject<EnemyInfo>(); 
+            enemies[e.name] = e;
+        }
         GameObject selector = Instantiate(button, level_selector.transform);
         selector.transform.localPosition = new Vector3(0, 130);
         selector.GetComponent<MenuSelectorController>().spawner = this;
