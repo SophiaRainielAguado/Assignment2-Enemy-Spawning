@@ -18,6 +18,15 @@ public class EnemyInfo
 
 }
 
+public class Level
+{
+    public string name;
+    public string waves;
+    public string spawns;
+}
+
+
+
 public class EnemySpawner : MonoBehaviour
 {
 
