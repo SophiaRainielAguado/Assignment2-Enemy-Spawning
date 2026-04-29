@@ -40,6 +40,7 @@ public class EnemySpawner : MonoBehaviour
 {
 
     Dictionary<string, EnemyInfo> enemies;
+    Dictionary<string, Level> levels;
 
     public Image level_selector;
     public GameObject button;
@@ -52,11 +53,24 @@ public class EnemySpawner : MonoBehaviour
         enemies = new Dictionary<string, EnemyInfo>();
         var enemytext = Resources.Load<TextAsset>("enemies");
         JToken jo = JToken.Parse(enemytext.text);
-        foreach(var enemy in jo)
+        foreach(var enemyToken in jo)
         {
-            EnemyInfo e = enemy.ToObject<EnemyInfo>(); 
+            EnemyInfo e = enemyToken.ToObject<EnemyInfo>(); 
             enemies[e.name] = e;
         }
+
+        levels = new Dictionary<string, Level>();
+        var leveltext = Resources.Load<TextAsset>("levels");
+        JToken jo2 = JToken.Parse(leveltext.text);
+        foreach(var levelToken in jo2)
+        {
+            Level x = levelToken.ToObject<Level>();
+            levels[x.name] = x;
+        }
+
+
+
+
         GameObject selector = Instantiate(button, level_selector.transform);
         selector.transform.localPosition = new Vector3(0, 130);
         selector.GetComponent<MenuSelectorController>().spawner = this;
@@ -83,7 +97,7 @@ public class EnemySpawner : MonoBehaviour
     }
 
 
-    IEnumerator SpawnWave()
+    IEnumerator SpawnWave(Level wave)
     {
         GameManager.Instance.state = GameManager.GameState.COUNTDOWN;
         GameManager.Instance.countdown = 3;
