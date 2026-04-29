@@ -82,7 +82,6 @@ public class EnemySpawner : MonoBehaviour
 
         // Assign the selected level when player clicks button
         GameManager.Instance.player.GetComponent<PlayerController>().StartLevel();
-        Level leveltostart = levels[levelname];
 
         // Start first wave
         currentWave = 1;    // increment wave count
@@ -105,8 +104,8 @@ public class EnemySpawner : MonoBehaviour
         {
             yield return StartCoroutine(HandleSpawn(spawn, currentWave));
         }
+
         yield return new WaitWhile(() => GameManager.Instance.enemy_count > 0);
-        GameManager.Instance.state = GameManager.GameState.WAVEEND;
     }
 
     // WAVE PROGRESSION: Wave Loop
@@ -114,7 +113,7 @@ public class EnemySpawner : MonoBehaviour
     {
         while (true) 
         {
-            if (currentLevel.waves > 0 && currentWave > currentLevel.waves)
+            if (currentLevel.waves > 0 && currentWave >= currentLevel.waves)
             {
                 GameManager.Instance.state = GameManager.GameState.GAMEOVER;
                 Debug.Log("Win");
@@ -134,20 +133,36 @@ public class EnemySpawner : MonoBehaviour
         EnemyInfo baseEnemy = enemies[spawn.enemy];
         var vars = new Dictionary<string, int>()
         {
-            { "wave", currentWave },
+            { "wave", wave },
             { "base", baseEnemy.hp }
         };
 
         // RPNEvaluator allows for float implementation.
         // But totalCount is an int, so we for cast for integer safety
         int totalCount = (int)RPNEvaluator.RPNEvaluator.Evaluate(spawn.count, vars);
+        float delayValue = 1f;
+        if (!string.IsNullOrEmpty(spawn.delay))
+        {
+            delayValue = RPNEvaluator.RPNEvaluator.Evaluate(spawn.delay, vars);
+        }
+
+        List<int> sequence = (spawn.sequence != null && spawn.sequence.Count > 0)
+            ? spawn.sequence
+            : new List<int> { 1 };
+
         int spawned = 0;
+        int seqIndex = 0;
 
         while (spawned < totalCount)
         {
-            SpawnEnemyWithStats(baseEnemy, spawn);
-            spawned++;
+            int burst = sequence[seqIndex % sequence.Count];
 
+            for (int i = 0; i < burst && spawned < totalCount; i++)
+            {
+                SpawnEnemyWithStats(baseEnemy, spawn);
+                spawned++;
+            }
+            seqIndex++;
             yield return new WaitForSeconds(1f);
         }
     }
