@@ -9,7 +9,6 @@ using System.Linq;
 
 public class EnemySpawner : MonoBehaviour
 {
-
     Dictionary<string, EnemyInfo> enemies; //creates dictionary that will store enemies
     Dictionary<string, Level> levels; // creates dictionary that will store levels
 
@@ -24,43 +23,44 @@ public class EnemySpawner : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        Debug.Log(typeof(RPNEvaluator.RPNEvaluator));
         enemies = new Dictionary<string, EnemyInfo>(); // go over enemies.json to get all possible enemies
         var enemytext = Resources.Load<TextAsset>("enemies");
         JToken jo = JToken.Parse(enemytext.text);
-        foreach(var enemyToken in jo)
+        foreach (var enemyToken in jo)
         {
-            EnemyInfo e = enemyToken.ToObject<EnemyInfo>(); 
+            EnemyInfo e = enemyToken.ToObject<EnemyInfo>();
             enemies[e.name] = e;
         }
 
         levels = new Dictionary<string, Level>(); //go over levels json to get the possible levels (easy, med, diff)
         var leveltext = Resources.Load<TextAsset>("levels");
         JToken jo2 = JToken.Parse(leveltext.text);
-        foreach(var levelToken in jo2)
+        foreach (var levelToken in jo2)
         {
             Level l = levelToken.ToObject<Level>();
             levels[l.name] = l;
         }
 
-       int i = 0;
-       foreach(var item in levels) //for every difficulty made
+        int i = 0;
+        foreach (var item in levels) //for every difficulty made
         {
             string levelname = item.Key;
             GameObject selector = Instantiate(button, level_selector.transform);
-            selector.transform.localPosition = new Vector3(0, 130*(i + 1));
+            selector.transform.localPosition = new Vector3(0, 130 * (i + 1));
             selector.GetComponent<MenuSelectorController>().spawner = this;
             selector.GetComponent<MenuSelectorController>().SetLevel(levelname);
             i++;
         }
 
-    
+
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void StartLevel(string levelname)
@@ -103,19 +103,34 @@ public class EnemySpawner : MonoBehaviour
             GameManager.Instance.countdown--;
         }
         GameManager.Instance.state = GameManager.GameState.INWAVE;
-        for (int i = 0; i < 10; ++i)
+        foreach (var spawn in currentLevel.spawns)
         {
-            yield return SpawnEnemy(enemies.Values.First());    // temporary compile fix
+            yield return StartCoroutine(HandleSpawn(spawn));
         }
         yield return new WaitWhile(() => GameManager.Instance.enemy_count > 0);
         GameManager.Instance.state = GameManager.GameState.WAVEEND;
     }
 
+    IEnumerator HandleSpawn(Spawn spawn)
+    {
+        EnemyInfo baseEnemy = enemies[spawn.enemy];
+
+        int totalCount = 5;     // Temporary hardcode
+        int spawned = 0;
+
+        while (spawned < totalCount)
+        {
+            SpawnEnemyWithStats(baseEnemy, spawn);
+            spawned++;
+
+            yield return new WaitForSeconds(1f);
+        }
+    }
     IEnumerator SpawnEnemy(EnemyInfo enemyToSpawn)
     {
         SpawnPoint spawn_point = SpawnPoints[Random.Range(0, SpawnPoints.Length)];
         Vector2 offset = Random.insideUnitCircle * 1.8f;
-                
+
         Vector3 initial_position = spawn_point.transform.position + new Vector3(offset.x, offset.y, 0);
         GameObject new_enemy = Instantiate(enemy, initial_position, Quaternion.identity);
 
@@ -126,35 +141,72 @@ public class EnemySpawner : MonoBehaviour
         GameManager.Instance.AddEnemy(new_enemy);
         yield return new WaitForSeconds(0.5f);
     }
-}
 
-// Stores Levels from levels.json; 
-public class Level
-{
-    public string name;         // name of level
-    public int waves;           // total waves in level
-    public List<Spawn> spawns;  // lists of Spawns, Wave behavior 
-}
+    void SpawnEnemyWithStats(EnemyInfo baseEnemy, Spawn spawn)
+    {
+        SpawnPoint spawn_point = SpawnPoints[Random.Range(0, SpawnPoints.Length)];
+        Vector2 offset = Random.insideUnitCircle * 1.8f;
 
-// Stores Spawns from levels.json - of a particular enemy.
-public class  Spawn
-{
-    public string enemy;        // type of enemy to spawn
-    public string count;        // number of enemies to spawn
-    public List<int> sequence;  // how many enemies to spawn after each delay
-    public string delay;        // delay between spawns
-    public string location;     // location to spawn (spawn point)
+        Vector3 initial_position = spawn_point.transform.position + new Vector3(offset.x, offset.y, 0);
+        GameObject new_enemy = Instantiate(enemy, initial_position, Quaternion.identity);
 
-    public string hp;           // hp of enemy to spawn (modification to base hp)
-    public string speed;        // speed of enemy to spawn (modification to base speed)
-    public string damage;       // damage of enemy to spawn (modification to base damage)
-}
+        // Sprite
+        new_enemy.GetComponent<SpriteRenderer>().sprite = GameManager.Instance.enemySpriteManager.Get(baseEnemy.sprite);
+        EnemyController en = new_enemy.GetComponent<EnemyController>();
 
-public class EnemyInfo //stores enemies; their names, sprite, hp, speed, and damage (base values)
-{
-    public string name;
-    public int sprite;
-    public int hp;
-    public int speed;
-    public int damage;
+        // default variables for RPN
+        var vars = new Dictionary<string, int>()
+        {
+            { "wave", currentWave },
+            { "base", baseEnemy.hp }
+        };
+
+        // Overrides
+        int hp = !string.IsNullOrEmpty(spawn.hp)
+            ? RPNEvaluator.RPNEvaluator.Evaluate(spawn.hp, vars)
+            : baseEnemy.hp;
+        int speed = !string.IsNullOrEmpty(spawn.speed)
+            ? RPNEvaluator.RPNEvaluator.Evaluate(spawn.speed, vars)
+            : baseEnemy.speed;
+        int damage = !string.IsNullOrEmpty(spawn.damage)
+            ? RPNEvaluator.RPNEvaluator.Evaluate(spawn.damage, vars)
+            : baseEnemy.damage;
+
+        en.hp = new Hittable(hp, Hittable.Team.MONSTERS, new_enemy);
+        en.speed = speed;
+        en.damage = damage;
+        GameManager.Instance.AddEnemy(new_enemy);
+    }
+
+    // Stores Levels from levels.json; 
+    public class Level
+    {
+        public string name;         // name of level
+        public int waves;           // total waves in level
+        public List<Spawn> spawns;  // lists of Spawns, Wave behavior 
+    }
+
+    // Stores Spawns from levels.json - of a particular enemy.
+    public class Spawn
+    {
+        public string enemy;        // type of enemy to spawn
+        public string count;        // number of enemies to spawn
+        public List<int> sequence;  // how many enemies to spawn after each delay
+        public string delay;        // delay between spawns
+        public string location;     // location to spawn (spawn point)
+
+        public string hp;           // hp of enemy to spawn (modification to base hp)
+        public string speed;        // speed of enemy to spawn (modification to base speed)
+        public string damage;       // damage of enemy to spawn (modification to base damage)
+    }
+
+    // Stores enemies from enemies.json
+    public class EnemyInfo
+    {
+        public string name; // name of enemy
+        public int sprite;  // index of sprite in EnemySpriteManager
+        public int hp;      // hp of enemy
+        public int speed;   // speed of enemy
+        public int damage;  // damage of enemy (base value)
+    }
 }
