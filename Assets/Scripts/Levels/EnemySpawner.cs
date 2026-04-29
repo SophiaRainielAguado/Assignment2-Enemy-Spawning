@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Linq;
 
-public class EnemyInfo
+public class EnemyInfo //stores enemies; their names, sprite, hp, speed, and damage (base values)
 {
     public string name;
     public int sprite;
@@ -18,29 +18,28 @@ public class EnemyInfo
 
 }
 
-public class SpawnCharacteristics
+public class SpawnCharacteristics //class that manages spawns of a particular enemy, and modifications to it
 {
     public string enemy;
     public string count;
     public string hp;
+    public string damage;
     public int delay;
     public List<int> sequence;
     public string location;
 }
-public class Level
+public class Level // level characteristics; the difficulty name, how many waves its got, the list of spawns it comes with
 {
     public string name;
-    public string waves;
+    public int waves;
     public List<SpawnCharacteristics> spawns;
 }
-
-
 
 public class EnemySpawner : MonoBehaviour
 {
 
-    Dictionary<string, EnemyInfo> enemies;
-    Dictionary<string, Level> levels;
+    Dictionary<string, EnemyInfo> enemies; //creates dictionary that will store enemies
+    Dictionary<string, Level> levels; // creates dictionary that will store levels
 
     public Image level_selector;
     public GameObject button;
@@ -50,7 +49,7 @@ public class EnemySpawner : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        enemies = new Dictionary<string, EnemyInfo>();
+        enemies = new Dictionary<string, EnemyInfo>(); // go over enemies.json to get all possible enemies
         var enemytext = Resources.Load<TextAsset>("enemies");
         JToken jo = JToken.Parse(enemytext.text);
         foreach(var enemyToken in jo)
@@ -59,13 +58,13 @@ public class EnemySpawner : MonoBehaviour
             enemies[e.name] = e;
         }
 
-        levels = new Dictionary<string, Level>();
+        levels = new Dictionary<string, Level>(); //go over levels json to get the possible levels (easy, med, diff)
         var leveltext = Resources.Load<TextAsset>("levels");
         JToken jo2 = JToken.Parse(leveltext.text);
         foreach(var levelToken in jo2)
         {
-            Level x = levelToken.ToObject<Level>();
-            levels[x.name] = x;
+            Level l = levelToken.ToObject<Level>();
+            levels[l.name] = l;
         }
 
 
