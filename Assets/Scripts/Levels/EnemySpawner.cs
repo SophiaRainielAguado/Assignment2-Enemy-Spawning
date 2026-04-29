@@ -154,7 +154,11 @@ public class EnemySpawner : MonoBehaviour
         new_enemy.GetComponent<SpriteRenderer>().sprite = GameManager.Instance.enemySpriteManager.Get(baseEnemy.sprite);
         EnemyController en = new_enemy.GetComponent<EnemyController>();
 
-        // default variables for RPN
+        // default variables for RPN - KEEP IN FUNCTIONS
+        // Moving it to a general class-level dictionary will cause 3 issues:
+            // Stale Wave Values: old wave value may persist || is not updated everywhere
+            // Cross-Level Contamination: values from one level may affect another || if not cleared properly
+            // Hard to Debug: tracking variable changes across levels becomes difficult || if variables are modified in unexpected ways
         var vars = new Dictionary<string, int>()
         {
             { "wave", currentWave },
