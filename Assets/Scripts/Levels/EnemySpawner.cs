@@ -67,13 +67,19 @@ public class EnemySpawner : MonoBehaviour
             levels[l.name] = l;
         }
 
+       int i = 0;
+       foreach(var item in levels) //for every difficulty made
+        {
+            string levelname = item.Key;
+            GameObject selector = Instantiate(button, level_selector.transform);
+            selector.transform.localPosition = new Vector3(0, 130*(i + 1));
+            selector.GetComponent<MenuSelectorController>().spawner = this;
+            selector.GetComponent<MenuSelectorController>().SetLevel(levelname);
+            i++;
+        }
 
+    
 
-
-        GameObject selector = Instantiate(button, level_selector.transform);
-        selector.transform.localPosition = new Vector3(0, 130);
-        selector.GetComponent<MenuSelectorController>().spawner = this;
-        selector.GetComponent<MenuSelectorController>().SetLevel("Start");
     }
 
     // Update is called once per frame
@@ -87,7 +93,8 @@ public class EnemySpawner : MonoBehaviour
         level_selector.gameObject.SetActive(false);
         // this is not nice: we should not have to be required to tell the player directly that the level is starting
         GameManager.Instance.player.GetComponent<PlayerController>().StartLevel();
-        StartCoroutine(SpawnWave());
+        Level leveltostart = levels[levelname];
+        StartCoroutine(SpawnWave(leveltostart));
     }
 
     public void NextWave()
