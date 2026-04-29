@@ -7,34 +7,6 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Linq;
 
-public class EnemyInfo //stores enemies; their names, sprite, hp, speed, and damage (base values)
-{
-    public string name;
-    public int sprite;
-    public int hp;
-    public int speed;
-    public int damage;
-    
-
-}
-
-public class SpawnCharacteristics //class that manages spawns of a particular enemy, and modifications to it
-{
-    public string enemy;
-    public string count;
-    public string hp;
-    public string damage;
-    public int delay;
-    public List<int> sequence;
-    public string location;
-}
-public class Level // level characteristics; the difficulty name, how many waves its got, the list of spawns it comes with
-{
-    public string name;
-    public int waves;
-    public List<SpawnCharacteristics> spawns;
-}
-
 public class EnemySpawner : MonoBehaviour
 {
 
@@ -46,7 +18,6 @@ public class EnemySpawner : MonoBehaviour
     public GameObject enemy;
     public SpawnPoint[] SpawnPoints;
 
-    private List<Level> levels;
     private Level currentLevel;
     private int currentWave = 0;
 
@@ -102,7 +73,7 @@ public class EnemySpawner : MonoBehaviour
         }
 
         // Find Level in Levels; loops through JObjects, looks at name. Return match
-        currentLevel = levels.FirstOrDefault(l => l.name == levelname);
+        currentLevel = levels[levelname];
         if (currentLevel == null)
         {
             Debug.LogError("Level not found:" + levelname);
@@ -119,13 +90,7 @@ public class EnemySpawner : MonoBehaviour
 
     public void NextWave()
     {
-        StartCoroutine(SpawnWave());
-    }
-
-    void LoadLevels() 
-    {
-        TextAsset jsonFile = Resources.Load<TextAsset>("levels");           // Read Json File
-        levels = JsonConvert.DeserializeObject<List<Level>>(jsonFile.text); // deserialize levels
+        StartCoroutine(SpawnWave(currentLevel));    // temporary commpile fix.
     }
 
     IEnumerator SpawnWave(Level wave)
@@ -140,7 +105,7 @@ public class EnemySpawner : MonoBehaviour
         GameManager.Instance.state = GameManager.GameState.INWAVE;
         for (int i = 0; i < 10; ++i)
         {
-            yield return SpawnEnemy();
+            yield return SpawnEnemy(enemies.Values.First());    // temporary compile fix
         }
         yield return new WaitWhile(() => GameManager.Instance.enemy_count > 0);
         GameManager.Instance.state = GameManager.GameState.WAVEEND;
@@ -163,22 +128,33 @@ public class EnemySpawner : MonoBehaviour
     }
 }
 
+// Stores Levels from levels.json; 
 public class Level
 {
-    public string name;
+    public string name;         // name of level
     public int waves;           // total waves in level
-    public List<Spawn> spawns;  // Wave behavior 
+    public List<Spawn> spawns;  // lists of Spawns, Wave behavior 
 }
 
+// Stores Spawns from levels.json - of a particular enemy.
 public class  Spawn
 {
-    public string enemy;
-    public string count;
-    public List<int> sequence;
-    public string delay;        // RPN string
-    public string location;
+    public string enemy;        // type of enemy to spawn
+    public string count;        // number of enemies to spawn
+    public List<int> sequence;  // how many enemies to spawn after each delay
+    public string delay;        // delay between spawns
+    public string location;     // location to spawn (spawn point)
 
-    public string hp;
-    public string speed;
-    public string damage;
+    public string hp;           // hp of enemy to spawn (modification to base hp)
+    public string speed;        // speed of enemy to spawn (modification to base speed)
+    public string damage;       // damage of enemy to spawn (modification to base damage)
+}
+
+public class EnemyInfo //stores enemies; their names, sprite, hp, speed, and damage (base values)
+{
+    public string name;
+    public int sprite;
+    public int hp;
+    public int speed;
+    public int damage;
 }
