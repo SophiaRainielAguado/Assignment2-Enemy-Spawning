@@ -88,11 +88,14 @@ public class EnemySpawner : MonoBehaviour
         StartCoroutine(SpawnWave(leveltostart));
     }
 
+    // WAVE MANAGMENT & CREATION
     public void NextWave()
     {
         StartCoroutine(SpawnWave(currentLevel));    // temporary commpile fix.
     }
 
+    // Spawns enemies based on the current wave's spawn list.
+    // Waits for all enemies to be defeated before ending wave.
     IEnumerator SpawnWave(Level wave)
     {
         GameManager.Instance.state = GameManager.GameState.COUNTDOWN;
@@ -111,11 +114,19 @@ public class EnemySpawner : MonoBehaviour
         GameManager.Instance.state = GameManager.GameState.WAVEEND;
     }
 
+    // Helper Function - Spawns enemies based on the spawn's count, delay, and sequence.
     IEnumerator HandleSpawn(Spawn spawn)
     {
         EnemyInfo baseEnemy = enemies[spawn.enemy];
+        var vars = new Dictionary<string, int>()
+        {
+            { "wave", currentWave },
+            { "base", baseEnemy.hp }
+        };
 
-        int totalCount = 5;     // Temporary hardcode
+        // RPNEvaluator allows for float implementation.
+        // But totalCount is an int, so we for cast for integer safety
+        int totalCount = (int)RPNEvaluator.RPNEvaluator.Evaluate(spawn.count, vars);
         int spawned = 0;
 
         while (spawned < totalCount)
