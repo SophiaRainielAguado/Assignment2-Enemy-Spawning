@@ -140,6 +140,7 @@ public class EnemySpawner : MonoBehaviour
         // RPNEvaluator allows for float implementation.
         // But totalCount is an int, so we for cast for integer safety
         int totalCount = (int)RPNEvaluator.RPNEvaluator.Evaluate(spawn.count, vars);
+        
         float delayValue = 1f;
         if (!string.IsNullOrEmpty(spawn.delay))
         {
@@ -155,15 +156,18 @@ public class EnemySpawner : MonoBehaviour
 
         while (spawned < totalCount)
         {
-            int burst = sequence[seqIndex % sequence.Count];
+            if(seqIndex >= sequence.Count)
+                seqIndex = sequence.Count - 1;
+
+            int burst = sequence[seqIndex];
+            seqIndex++;
 
             for (int i = 0; i < burst && spawned < totalCount; i++)
             {
                 SpawnEnemyWithStats(baseEnemy, spawn);
                 spawned++;
             }
-            seqIndex++;
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(delayValue);
         }
     }
     IEnumerator SpawnEnemy(EnemyInfo enemyToSpawn)
