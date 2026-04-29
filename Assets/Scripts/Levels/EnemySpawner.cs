@@ -139,7 +139,7 @@ public class EnemySpawner : MonoBehaviour
     }
     IEnumerator SpawnEnemy(EnemyInfo enemyToSpawn)
     {
-        SpawnPoint spawn_point = SpawnPoints[Random.Range(0, SpawnPoints.Length)];
+        SpawnPoint spawn_point = GetSpawnPoint("random");
         Vector2 offset = Random.insideUnitCircle * 1.8f;
 
         Vector3 initial_position = spawn_point.transform.position + new Vector3(offset.x, offset.y, 0);
@@ -155,7 +155,7 @@ public class EnemySpawner : MonoBehaviour
 
     void SpawnEnemyWithStats(EnemyInfo baseEnemy, Spawn spawn)
     {
-        SpawnPoint spawn_point = SpawnPoints[Random.Range(0, SpawnPoints.Length)];
+        SpawnPoint spawn_point = GetSpawnPoint(spawn.location);
         Vector2 offset = Random.insideUnitCircle * 1.8f;
 
         Vector3 initial_position = spawn_point.transform.position + new Vector3(offset.x, offset.y, 0);
@@ -191,6 +191,27 @@ public class EnemySpawner : MonoBehaviour
         en.speed = speed;
         en.damage = damage;
         GameManager.Instance.AddEnemy(new_enemy);
+    }
+
+    SpawnPoint GetSpawnPoint(string location)
+    {
+        if (string.IsNullOrEmpty(location) || location == "random")
+            return SpawnPoints[Random.Range(0, SpawnPoints.Length)];
+
+        if (location.Contains("red"))
+            return SpawnPoints.Where(p => p.kind == SpawnPoint.SpawnName.RED)
+                .OrderBy(_ => Random.value).FirstOrDefault();
+
+        if (location.Contains("green"))
+            return SpawnPoints.Where(p => p.kind == SpawnPoint.SpawnName.GREEN)
+                .OrderBy(_ => Random.value).FirstOrDefault();
+
+        if (location.Contains("bone"))
+            return SpawnPoints.Where(p => p.kind == SpawnPoint.SpawnName.BONE)
+                .OrderBy(_ => Random.value).FirstOrDefault();
+
+        // Edge case: if location is specified but doesn't match any known spawn point
+        return SpawnPoints[Random.Range(0, SpawnPoints.Length)];
     }
 
     // Stores Levels from levels.json; 
