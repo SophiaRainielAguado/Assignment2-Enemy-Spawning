@@ -19,7 +19,6 @@ public class EnemySpawner : MonoBehaviour
 
     private Level currentLevel;
     private int currentWave = 0;
-    private int waveNumber = 0;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -81,19 +80,18 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
-        // Start first wave
-        waveNumber = 1;    // increment wave count
         // Assign the selected level when player clicks button
         GameManager.Instance.player.GetComponent<PlayerController>().StartLevel();
         Level leveltostart = levels[levelname];
 
-        currentWave = 1;
+        // Start first wave
+        currentWave = 1;    // increment wave count
         StartCoroutine(WaveLoop());
     }
 
     // WAVE PREOGRESSIOn & EXECUTION
     // WAVE EXECUTION: Runs a single wave
-    IEnumerator RunWave(Level level, int waveNumber)
+    IEnumerator RunWave(Level level, int currentWave)
     {
         GameManager.Instance.state = GameManager.GameState.COUNTDOWN;
         GameManager.Instance.countdown = 3;
@@ -116,26 +114,18 @@ public class EnemySpawner : MonoBehaviour
     {
         while (true) 
         {
-            if (currentLevel.waves > 0 && waveNumber > currentLevel.waves)
+            if (currentLevel.waves > 0 && currentWave > currentLevel.waves)
             {
                 GameManager.Instance.state = GameManager.GameState.GAMEOVER;
                 Debug.Log("Win");
                 yield break;
             }
 
-            yield return StartCoroutine(RunWave(currentLevel, waveNumber));
+            yield return StartCoroutine(RunWave(currentLevel, currentWave));
+            currentWave++;
 
             GameManager.Instance.state = GameManager.GameState.WAVEEND;
-
-            yield return new WaitWhile(() => GameManager.Instance.state == GameManager.GameState.INWAVE);
         }
-    }
-
-    // WAVE PROGRESSION: Next Wave
-    public void NextWave()
-    {
-        currentWave++;
-        GameManager.Instance.state = GameManager.GameState.INWAVE;
     }
 
     // Helper Function - Spawns enemies based on the spawn's count, delay, and sequence.
@@ -144,7 +134,7 @@ public class EnemySpawner : MonoBehaviour
         EnemyInfo baseEnemy = enemies[spawn.enemy];
         var vars = new Dictionary<string, int>()
         {
-            { "wave", waveNumber },
+            { "wave", currentWave },
             { "base", baseEnemy.hp }
         };
 
@@ -196,7 +186,7 @@ public class EnemySpawner : MonoBehaviour
             // Hard to Debug: tracking variable changes across levels becomes difficult || if variables are modified in unexpected ways
         var vars = new Dictionary<string, int>()
         {
-            { "wave", waveNumber },
+            { "wave", currentWave },
             { "base", baseEnemy.hp }
         };
 
