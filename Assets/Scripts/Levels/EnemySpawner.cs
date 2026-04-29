@@ -103,7 +103,7 @@ public class EnemySpawner : MonoBehaviour
         GameManager.Instance.state = GameManager.GameState.INWAVE;
         foreach (var spawn in level.spawns)
         {
-            yield return StartCoroutine(HandleSpawn(spawn));
+            yield return StartCoroutine(HandleSpawn(spawn, currentWave));
         }
         yield return new WaitWhile(() => GameManager.Instance.enemy_count > 0);
         GameManager.Instance.state = GameManager.GameState.WAVEEND;
@@ -129,7 +129,7 @@ public class EnemySpawner : MonoBehaviour
     }
 
     // Helper Function - Spawns enemies based on the spawn's count, delay, and sequence.
-    IEnumerator HandleSpawn(Spawn spawn)
+    IEnumerator HandleSpawn(Spawn spawn, int wave)
     {
         EnemyInfo baseEnemy = enemies[spawn.enemy];
         var vars = new Dictionary<string, int>()
