@@ -15,9 +15,9 @@ public class EnemySpawner : MonoBehaviour
     public GameObject enemy;
     public SpawnPoint[] SpawnPoints;
 
-    private List<JObject> levels;
-    JObject currentLevel;
-    int currentWave = 0;
+    private List<Level> levels;
+    private Level currentLevel;
+    private int currentWave = 0;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -45,7 +45,7 @@ public class EnemySpawner : MonoBehaviour
         }
 
         // Find Level in Levels; loops through JObjects, looks at name. Return match
-        currentLevel = levels.FirstOrDefault(l => (string)l["name"] == levelname);
+        currentLevel = levels.FirstOrDefault(l => l.name == levelname);
         if (currentLevel == null)
         {
             Debug.LogError("Level not found:" + levelname);
@@ -66,9 +66,8 @@ public class EnemySpawner : MonoBehaviour
 
     void LoadLevels() 
     {
-        TextAsset jsonFile = Resources.Load<TextAsset>("levels");   // Read Json File
-        JArray jsonArray = JArray.Parse(jsonFile.text);             // deserialize levels
-        levels = jsonArray.Children<JObject>().ToList();            // convert to list of JObject
+        TextAsset jsonFile = Resources.Load<TextAsset>("levels");           // Read Json File
+        levels = JsonConvert.DeserializeObject<List<Level>>(jsonFile.text); // deserialize levels
     }
 
     IEnumerator SpawnWave()
@@ -105,4 +104,24 @@ public class EnemySpawner : MonoBehaviour
         GameManager.Instance.AddEnemy(new_enemy);
         yield return new WaitForSeconds(0.5f);
     }
+}
+
+public class Level
+{
+    public string name;
+    public int waves;           // total waves in level
+    public List<Spawn> spawns;  // Wave behavior 
+}
+
+public class  Spawn
+{
+    public string enemy;
+    public string count;
+    public List<int> sequence;
+    public string delay;        // RPN string
+    public string location;
+
+    public string hp;
+    public string speed;
+    public string damage;
 }
