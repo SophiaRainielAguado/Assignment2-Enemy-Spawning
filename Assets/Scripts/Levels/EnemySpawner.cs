@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using System.Collections;
 using System.Linq;
+using TMPro;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -20,9 +21,9 @@ public class EnemySpawner : MonoBehaviour
     public GameObject waveEndUI;
     public SpawnPoint[] SpawnPoints;
 
-    public Text waveText;
-    public Text enemiesKilledText;
-    public Text timeText;
+    public TMP_Text waveText;
+    public TMP_Text enemiesKilledText;
+    public TMP_Text timeText;
 
     private Level currentLevel;
     private int currentWave = 0;
