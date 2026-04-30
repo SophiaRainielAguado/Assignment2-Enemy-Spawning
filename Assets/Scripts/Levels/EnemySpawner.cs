@@ -23,7 +23,7 @@ public class EnemySpawner : MonoBehaviour
     public Text waveText;
     public Text enemiesKilledText;
     public Text timeText;
-    public Text levelCompleteText;
+    public Text gameOverText;
 
     private Level currentLevel;
     private int currentWave = 0;
@@ -60,7 +60,7 @@ public class EnemySpawner : MonoBehaviour
         {
             string levelname = item.Key;
             GameObject selector = Instantiate(button, level_selector.transform);
-            selector.transform.localPosition = new Vector3(0, 130 + (130 * i));
+            selector.transform.localPosition = new Vector3(0, 130 - ( 95 *i));
             selector.GetComponent<MenuSelectorController>().spawner = this;
             selector.GetComponent<MenuSelectorController>().SetLevel(levelname);
             i++;
@@ -76,6 +76,10 @@ public class EnemySpawner : MonoBehaviour
 
     }
 
+    public void ReturnToMenu()
+    {
+        StopAllCoroutines();
+    }
     public void StartLevel(string levelname)
     {
         level_selector.gameObject.SetActive(false);
@@ -139,11 +143,16 @@ public class EnemySpawner : MonoBehaviour
             {
                 GameManager.Instance.state = GameManager.GameState.GAMEOVER;
 
-                if (winUI != null){
+                if (winUI != null) //the win UI should appear when this condition is met
+                {
                     winUI.SetActive(true);
-                    if(levelCompleteText != null)
-                        levelCompleteText.text = "You've beaten the level, congrats!";
+                    gameOverText.text =  "Congratulations, you beat all the waves!";
                 }
+                if (waveEndUI != null) //and the waveend UI (which has the next button?) should not
+                {
+                    waveEndUI.SetActive(false);
+                }
+                waitingForNextWave = false; //and since the game is over, we aren't waiting for the next wave.
 
                 yield break;
             }
