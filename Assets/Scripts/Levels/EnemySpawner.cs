@@ -59,7 +59,7 @@ public class EnemySpawner : MonoBehaviour
         {
             string levelname = item.Key;
             GameObject selector = Instantiate(button, level_selector.transform);
-            selector.transform.localPosition = new Vector3(0, 130 + (130 * i));
+            selector.transform.localPosition = new Vector3(0, -95 + (65 * i));
             selector.GetComponent<MenuSelectorController>().spawner = this;
             selector.GetComponent<MenuSelectorController>().SetLevel(levelname);
             i++;
@@ -173,7 +173,7 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    public void ContinueToNextWave()
+    public void nextWave()
     {
         waitingForNextWave = false;
     }
