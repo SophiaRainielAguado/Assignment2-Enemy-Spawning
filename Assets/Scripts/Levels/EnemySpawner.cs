@@ -15,10 +15,14 @@ public class EnemySpawner : MonoBehaviour
     public Image level_selector;
     public GameObject button;
     public GameObject enemy;
+    public GameObject gameOverUI;
+    public GameObject winUI;
     public SpawnPoint[] SpawnPoints;
 
     private Level currentLevel;
     private int currentWave = 0;
+    private readonly HashSet<GameObject> activeEnemies = new HashSet<GameObject>();
+    private bool waitingForNextWave = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -105,7 +109,8 @@ public class EnemySpawner : MonoBehaviour
             yield return StartCoroutine(HandleSpawn(spawn, currentWave));
         }
 
-        yield return new WaitWhile(() => GameManager.Instance.enemy_count > 0);
+        yield return new WaitWhile(() => 
+            activeEnemies.Count > 0 || GameManager.Instance.enemy_count > 0);
     }
 
     // WAVE PROGRESSION: Wave Loop
@@ -116,15 +121,35 @@ public class EnemySpawner : MonoBehaviour
             if (currentLevel.waves > 0 && currentWave >= currentLevel.waves)
             {
                 GameManager.Instance.state = GameManager.GameState.GAMEOVER;
-                Debug.Log("Win");
+                if (winUI != null) winUI.SetActive(true);
+                StopAllCoroutines();
                 yield break;
             }
 
             yield return StartCoroutine(RunWave(currentLevel, currentWave));
-            currentWave++;
 
+            currentWave++;
             GameManager.Instance.state = GameManager.GameState.WAVEEND;
+
+            waitingForNextWave = true;
+
+            if (winUI != null)
+            {
+                winUI.SetActive(true);
+            }
+
+            yield return new WaitUntil(() => waitingForNextWave == false);
+
+            if (winUI != null)
+            {
+                winUI.SetActive(false);
+            }
         }
+    }
+
+    public void ContinueToNextWave()
+    {
+        waitingForNextWave = false;
     }
 
     // Helper Function - Spawns enemies based on the spawn's count, delay, and sequence.
@@ -141,11 +166,9 @@ public class EnemySpawner : MonoBehaviour
         // But totalCount is an int, so we for cast for integer safety
         int totalCount = (int)RPNEvaluator.RPNEvaluator.Evaluate(spawn.count, vars);
         
-        float delayValue = 1f;
-        if (!string.IsNullOrEmpty(spawn.delay))
-        {
-            delayValue = RPNEvaluator.RPNEvaluator.Evaluate(spawn.delay, vars);
-        }
+        float delayValue = string.IsNullOrEmpty(spawn.delay)
+            ? 1f
+            : delayValue = RPNEvaluator.RPNEvaluator.Evaluate(spawn.delay, vars);
 
         List<int> sequence = (spawn.sequence != null && spawn.sequence.Count > 0)
             ? spawn.sequence
@@ -156,10 +179,7 @@ public class EnemySpawner : MonoBehaviour
 
         while (spawned < totalCount)
         {
-            if(seqIndex >= sequence.Count)
-                seqIndex = sequence.Count - 1;
-
-            int burst = sequence[seqIndex];
+            int burst = sequence[seqIndex % sequence.Count];
             seqIndex++;
 
             for (int i = 0; i < burst && spawned < totalCount; i++)
@@ -170,29 +190,30 @@ public class EnemySpawner : MonoBehaviour
             yield return new WaitForSeconds(delayValue);
         }
     }
-    IEnumerator SpawnEnemy(EnemyInfo enemyToSpawn)
-    {
-        SpawnPoint spawn_point = GetSpawnPoint("random");
-        Vector2 offset = Random.insideUnitCircle * 1.8f;
-
-        Vector3 initial_position = spawn_point.transform.position + new Vector3(offset.x, offset.y, 0);
-        GameObject new_enemy = Instantiate(enemy, initial_position, Quaternion.identity);
-
-        new_enemy.GetComponent<SpriteRenderer>().sprite = GameManager.Instance.enemySpriteManager.Get(enemyToSpawn.sprite);
-        EnemyController en = new_enemy.GetComponent<EnemyController>();
-        en.hp = new Hittable(enemyToSpawn.hp, Hittable.Team.MONSTERS, new_enemy);
-        en.speed = enemyToSpawn.speed;
-        GameManager.Instance.AddEnemy(new_enemy);
-        yield return new WaitForSeconds(0.5f);
-    }
 
     void SpawnEnemyWithStats(EnemyInfo baseEnemy, Spawn spawn)
     {
         SpawnPoint spawn_point = GetSpawnPoint(spawn.location);
+
+        // Edge Case 1: SpawnPoints array is empty or null
+        if (SpawnPoints == null || SpawnPoints.Length == 0)
+        {
+            Debug.LogError("No spawn points configured.");
+            return;
+        }
+
+        // Edge Case 2: GetSpawnPoint returns null due to invalid location string
+        if (spawn_point == null)
+        {
+            Debug.LogWarning($"No spawn point found for '{spawn.location}', using fallback.");
+            spawn_point = SpawnPoints[0];
+        }
+
         Vector2 offset = Random.insideUnitCircle * 1.8f;
 
         Vector3 initial_position = spawn_point.transform.position + new Vector3(offset.x, offset.y, 0);
         GameObject new_enemy = Instantiate(enemy, initial_position, Quaternion.identity);
+        activeEnemies.Add(new_enemy);
 
         // Sprite
         new_enemy.GetComponent<SpriteRenderer>().sprite = GameManager.Instance.enemySpriteManager.Get(baseEnemy.sprite);
@@ -221,9 +242,20 @@ public class EnemySpawner : MonoBehaviour
             : baseEnemy.damage;
 
         en.hp = new Hittable(hp, Hittable.Team.MONSTERS, new_enemy);
+        en.hp.OnDeath += () => activeEnemies.Remove(new_enemy);
+
+        GameObject enemyObj = new_enemy;
+        en.hp.OnDeath += () =>
+        { 
+            activeEnemies.Remove(enemyObj);
+            GameManager.Instance.RemoveEnemy(enemyObj);
+            GameManager.Instance.enemy_count--;
+        };
         en.speed = speed;
         en.damage = damage;
+
         GameManager.Instance.AddEnemy(new_enemy);
+        GameManager.Instance.enemy_count++;
     }
 
     SpawnPoint GetSpawnPoint(string location)
@@ -244,6 +276,12 @@ public class EnemySpawner : MonoBehaviour
                 .OrderBy(_ => Random.value).FirstOrDefault();
 
         // Edge case: if location is specified but doesn't match any known spawn point
+        if (SpawnPoints == null || SpawnPoints.Length == 0)
+        {
+            Debug.LogError("SpawnPoints array is empty!");
+            return null;
+        }
+
         return SpawnPoints[Random.Range(0, SpawnPoints.Length)];
     }
 
