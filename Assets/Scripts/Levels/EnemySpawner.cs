@@ -177,7 +177,7 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    public void ContinueToNextWave()
+    public void nextWave()
     {
         waitingForNextWave = false;
     }
