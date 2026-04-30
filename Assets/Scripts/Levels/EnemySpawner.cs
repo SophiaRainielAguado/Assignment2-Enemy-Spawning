@@ -23,6 +23,7 @@ public class EnemySpawner : MonoBehaviour
     public Text waveText;
     public Text enemiesKilledText;
     public Text timeText;
+    public Text levelCompleteText;
 
     private Level currentLevel;
     private int currentWave = 0;
@@ -59,7 +60,7 @@ public class EnemySpawner : MonoBehaviour
         {
             string levelname = item.Key;
             GameObject selector = Instantiate(button, level_selector.transform);
-            selector.transform.localPosition = new Vector3(0, 130 + (130 * i));
+            selector.transform.localPosition = new Vector3(0, 130 - (130 * i));
             selector.GetComponent<MenuSelectorController>().spawner = this;
             selector.GetComponent<MenuSelectorController>().SetLevel(levelname);
             i++;
@@ -138,8 +139,11 @@ public class EnemySpawner : MonoBehaviour
             {
                 GameManager.Instance.state = GameManager.GameState.GAMEOVER;
 
-                if (winUI != null)
+                if (winUI != null){
                     winUI.SetActive(true);
+                    if(levelCompleteText != null)
+                        levelCompleteText.text = "You've beaten the level, congrats!";
+                }
 
                 yield break;
             }
