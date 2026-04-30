@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.IO;
@@ -21,16 +21,10 @@ public class EnemySpawner : MonoBehaviour
     public GameObject waveEndUI;
     public SpawnPoint[] SpawnPoints;
 
-<<<<<<< HEAD
     public TMP_Text waveText;
     public TMP_Text enemiesKilledText;
     public TMP_Text timeText;
-=======
-    public Text waveText;
-    public Text enemiesKilledText;
-    public Text timeText;
-    public Text gameOverText;
->>>>>>> ee494260c384f1f329e02a166c792bb48bab7459
+    public TMP_Text gameOverText;
 
     private Level currentLevel;
     private int currentWave = 0;
@@ -39,6 +33,8 @@ public class EnemySpawner : MonoBehaviour
     private float waveDuration;
     private bool waitingForNextWave = false;
     private bool spawningFinished = false;
+    private bool gameExited = false;
+    private bool playerDeathHooked = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -67,7 +63,7 @@ public class EnemySpawner : MonoBehaviour
         {
             string levelname = item.Key;
             GameObject selector = Instantiate(button, level_selector.transform);
-            selector.transform.localPosition = new Vector3(0, 130 - ( 95 *i));
+            selector.transform.localPosition = new Vector3(0, 115 - ( 75 *i));
             selector.GetComponent<MenuSelectorController>().spawner = this;
             selector.GetComponent<MenuSelectorController>().SetLevel(levelname);
             i++;
@@ -79,16 +75,85 @@ public class EnemySpawner : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {
+    {       
+    }
 
+    void HandleGameOver(bool won)
+    {
+        if (GameManager.Instance.state == GameManager.GameState.GAMEOVER)
+        {
+            return;
+        }
+        StopAllCoroutines();
+
+        GameManager.Instance.state = GameManager.GameState.GAMEOVER;
+
+        if (waveEndUI != null)
+            waveEndUI.SetActive(false);
+
+        if (winUI != null)
+            winUI.SetActive(won);
+
+        if (gameOverUI != null)
+            gameOverUI.SetActive(!won);
+
+
+        if (gameOverText != null)
+        {
+            gameOverText.text = won
+                ? "Congratulations, you beat all the waves!"
+                : "Game Over! You died.";
+        }
     }
 
     public void ReturnToMenu()
     {
+        gameExited = true;
+
+        // Stop wave system first
         StopAllCoroutines();
+
+        // Disable player cleanly
+        var player = GameManager.Instance.player.GetComponent<PlayerController>();
+        player.enabled = false;
+
+        // IMPORTANT: clear enemy tracking FIRST (before destroying objects)
+        foreach (var enemy in FindObjectsOfType<EnemyController>())
+        {
+            Destroy(enemy.gameObject);
+        }
+
+        // Now safely destroy all remaining enemies in scene
+        foreach (var enemy in GameObject.FindObjectsOfType<EnemyController>())
+        {
+            if (enemy != null)
+            {
+                enemy.dead = true; // prevents double death logic
+                Destroy(enemy.gameObject);
+            }
+        }
+
+        // Reset wave state
+        currentWave = 0;
+        waitingForNextWave = false;
+        spawningFinished = false;
+
+        // Reset game state
+        GameManager.Instance.state = GameManager.GameState.PREGAME;
+
+        // UI reset
+        if (gameOverUI != null) gameOverUI.SetActive(false);
+        if (winUI != null) winUI.SetActive(false);
+        if (waveEndUI != null) waveEndUI.SetActive(false);
+
+        level_selector.gameObject.SetActive(true);
     }
     public void StartLevel(string levelname)
     {
+        GameManager.Instance.player.GetComponent<PlayerController>().enabled = true;
+        playerDeathHooked = false;
+        gameExited = false;
+
         level_selector.gameObject.SetActive(false);
         if (levels == null)
         {
@@ -106,6 +171,20 @@ public class EnemySpawner : MonoBehaviour
 
         // Assign the selected level when player clicks button
         GameManager.Instance.player.GetComponent<PlayerController>().StartLevel();
+
+        var player = GameManager.Instance.player.GetComponent<PlayerController>();
+
+        if (!playerDeathHooked)
+        {
+            playerDeathHooked = true;
+
+            GameManager.Instance.player
+                .GetComponent<PlayerController>()
+                .hp.OnDeath += () =>
+                {
+                    HandleGameOver(false);
+                };
+        }
 
         // Start first wave
         currentWave = 1;    // increment wave count
@@ -136,7 +215,7 @@ public class EnemySpawner : MonoBehaviour
 
         spawningFinished = true;
         yield return new WaitUntil(() =>
-            spawningFinished && GameManager.Instance.enemy_count == 0);
+            spawningFinished && GameManager.Instance.enemy_count <= 0);
 
         waveDuration = Time.time - waveStartTime;
     }
@@ -144,23 +223,11 @@ public class EnemySpawner : MonoBehaviour
     // WAVE PROGRESSION: Wave Loop
     IEnumerator WaveLoop()
     {
-        while (true)
+        while (!gameExited)
         {
-            if (currentLevel.waves > 0 && currentWave > currentLevel.waves)
+            if (currentLevel != null && currentLevel.waves > 0 && currentWave > currentLevel.waves)
             {
-                GameManager.Instance.state = GameManager.GameState.GAMEOVER;
-
-                if (winUI != null) //the win UI should appear when this condition is met
-                {
-                    winUI.SetActive(true);
-                    gameOverText.text =  "Congratulations, you beat all the waves!";
-                }
-                if (waveEndUI != null) //and the waveend UI (which has the next button?) should not
-                {
-                    waveEndUI.SetActive(false);
-                }
-                waitingForNextWave = false; //and since the game is over, we aren't waiting for the next wave.
-
+                HandleGameOver(true);
                 yield break;
             }
 
