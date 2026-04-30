@@ -17,12 +17,20 @@ public class EnemySpawner : MonoBehaviour
     public GameObject enemy;
     public GameObject gameOverUI;
     public GameObject winUI;
+    public GameObject waveEndUI;
     public SpawnPoint[] SpawnPoints;
+
+    public Text waveText;
+    public Text enemiesKilledText;
+    public Text timeText;
 
     private Level currentLevel;
     private int currentWave = 0;
-    private readonly HashSet<GameObject> activeEnemies = new HashSet<GameObject>();
+    private int enemiesKilledThisWave = 0;
+    private float waveStartTime;
+    private float waveDuration;
     private bool waitingForNextWave = false;
+    private bool spawningFinished = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -96,8 +104,13 @@ public class EnemySpawner : MonoBehaviour
     // WAVE EXECUTION: Runs a single wave
     IEnumerator RunWave(Level level, int currentWave)
     {
+        spawningFinished = false;
         GameManager.Instance.state = GameManager.GameState.COUNTDOWN;
         GameManager.Instance.countdown = 3;
+
+        enemiesKilledThisWave = 0;
+        waveStartTime = Time.time;
+
         for (int i = 3; i > 0; i--)
         {
             yield return new WaitForSeconds(1);
@@ -109,41 +122,54 @@ public class EnemySpawner : MonoBehaviour
             yield return StartCoroutine(HandleSpawn(spawn, currentWave));
         }
 
-        yield return new WaitWhile(() => 
-            activeEnemies.Count > 0 || GameManager.Instance.enemy_count > 0);
+        spawningFinished = true;
+        yield return new WaitUntil(() =>
+            spawningFinished && GameManager.Instance.enemy_count == 0);
+
+        waveDuration = Time.time - waveStartTime;
     }
 
     // WAVE PROGRESSION: Wave Loop
     IEnumerator WaveLoop()
     {
-        while (true) 
+        while (true)
         {
-            if (currentLevel.waves > 0 && currentWave >= currentLevel.waves)
+            if (currentLevel.waves > 0 && currentWave > currentLevel.waves)
             {
                 GameManager.Instance.state = GameManager.GameState.GAMEOVER;
-                if (winUI != null) winUI.SetActive(true);
-                StopAllCoroutines();
+
+                if (winUI != null)
+                    winUI.SetActive(true);
+
                 yield break;
             }
 
             yield return StartCoroutine(RunWave(currentLevel, currentWave));
 
+            int completedWave = currentWave;
             currentWave++;
             GameManager.Instance.state = GameManager.GameState.WAVEEND;
 
             waitingForNextWave = true;
 
-            if (winUI != null)
+            if (waveEndUI != null)
             {
-                winUI.SetActive(true);
+                waveEndUI.SetActive(true);
+
+                if (waveText != null)
+                    waveText.text = "Wave " + completedWave + " complete";
+
+                if (enemiesKilledText != null)
+                    enemiesKilledText.text = "Enemies killed: " + enemiesKilledThisWave;
+
+                if (timeText != null)
+                    timeText.text = "Time: " + waveDuration.ToString("F1") + "s";
             }
 
             yield return new WaitUntil(() => waitingForNextWave == false);
 
-            if (winUI != null)
-            {
-                winUI.SetActive(false);
-            }
+            if (waveEndUI != null)
+                waveEndUI.SetActive(false);
         }
     }
 
@@ -165,10 +191,10 @@ public class EnemySpawner : MonoBehaviour
         // RPNEvaluator allows for float implementation.
         // But totalCount is an int, so we for cast for integer safety
         int totalCount = (int)RPNEvaluator.RPNEvaluator.Evaluate(spawn.count, vars);
-        
+
         float delayValue = string.IsNullOrEmpty(spawn.delay)
             ? 1f
-            : delayValue = RPNEvaluator.RPNEvaluator.Evaluate(spawn.delay, vars);
+            : RPNEvaluator.RPNEvaluator.Evaluate(spawn.delay, vars);
 
         List<int> sequence = (spawn.sequence != null && spawn.sequence.Count > 0)
             ? spawn.sequence
@@ -189,6 +215,7 @@ public class EnemySpawner : MonoBehaviour
             }
             yield return new WaitForSeconds(delayValue);
         }
+        yield return null;
     }
 
     void SpawnEnemyWithStats(EnemyInfo baseEnemy, Spawn spawn)
@@ -213,10 +240,10 @@ public class EnemySpawner : MonoBehaviour
 
         Vector3 initial_position = spawn_point.transform.position + new Vector3(offset.x, offset.y, 0);
         GameObject new_enemy = Instantiate(enemy, initial_position, Quaternion.identity);
-        activeEnemies.Add(new_enemy);
 
         // Sprite
         new_enemy.GetComponent<SpriteRenderer>().sprite = GameManager.Instance.enemySpriteManager.Get(baseEnemy.sprite);
+        GameManager.Instance.AddEnemy(new_enemy);
         EnemyController en = new_enemy.GetComponent<EnemyController>();
 
         // default variables for RPN - KEEP IN FUNCTIONS
@@ -242,24 +269,26 @@ public class EnemySpawner : MonoBehaviour
             : baseEnemy.damage;
 
         en.hp = new Hittable(hp, Hittable.Team.MONSTERS, new_enemy);
-        en.hp.OnDeath += () => activeEnemies.Remove(new_enemy);
 
         GameObject enemyObj = new_enemy;
         en.hp.OnDeath += () =>
-        { 
-            activeEnemies.Remove(enemyObj);
+        {
+            enemiesKilledThisWave++;
             GameManager.Instance.RemoveEnemy(enemyObj);
-            GameManager.Instance.enemy_count--;
+            Destroy(enemyObj);
         };
         en.speed = speed;
         en.damage = damage;
-
-        GameManager.Instance.AddEnemy(new_enemy);
-        GameManager.Instance.enemy_count++;
     }
 
     SpawnPoint GetSpawnPoint(string location)
     {
+        if (SpawnPoints == null || SpawnPoints.Length == 0)
+        {
+            Debug.LogError("SpawnPoints array is empty!");
+            return null;
+        }
+
         if (string.IsNullOrEmpty(location) || location == "random")
             return SpawnPoints[Random.Range(0, SpawnPoints.Length)];
 
@@ -274,13 +303,6 @@ public class EnemySpawner : MonoBehaviour
         if (location.Contains("bone"))
             return SpawnPoints.Where(p => p.kind == SpawnPoint.SpawnName.BONE)
                 .OrderBy(_ => Random.value).FirstOrDefault();
-
-        // Edge case: if location is specified but doesn't match any known spawn point
-        if (SpawnPoints == null || SpawnPoints.Length == 0)
-        {
-            Debug.LogError("SpawnPoints array is empty!");
-            return null;
-        }
 
         return SpawnPoints[Random.Range(0, SpawnPoints.Length)];
     }
