@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
 
-public class spelldata // can be used for all the base spells; some fields will be left null 
+public class SpellData // can be used for all the base spells; some fields will be left null 
 {
     public string name;
     public string description;
@@ -43,35 +43,37 @@ public class Spell
     public float last_cast;
     public SpellCaster owner;
     public Hittable.Team team;
+    public SpellData data;
 
-    public Spell(SpellCaster owner)
+    public Spell(SpellCaster owner, SpellData spelldata)
     {
         this.owner = owner;
+        this.data = spelldata;
     }
 
     public string GetName()
     {
-        return "Bolt";
+        return data.name;
     }
 
     public int GetManaCost()
     {
-        return 10;
+        return data.mana_cost;
     }
 
     public int GetDamage()
     {
-        return 100;
+        return data.damage; //not sure if i have to run it thru the calculator first?
     }
 
     public float GetCooldown()
     {
-        return 0.75f;
+        return data.cooldown;
     }
 
     public virtual int GetIcon()
     {
-        return 0;
+        return data.icon;
     }
 
     public bool IsReady()
