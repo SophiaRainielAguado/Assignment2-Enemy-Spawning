@@ -3,6 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
+
+public class spelldata // can be used for all the base spells; some fields will be left null 
+{
+    public string name;
+    public string description;
+    public int icon;
+    public DamageInfo damage;
+    public string mana_cost;
+    public string cooldown;
+    public ProjectileInfo projectile;
+    public SecondaryProjectileInfo secondary_projectile;
+}
 public class Spell 
 {
     public float last_cast;
