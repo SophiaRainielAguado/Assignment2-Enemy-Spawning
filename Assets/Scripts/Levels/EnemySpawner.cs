@@ -266,6 +266,7 @@ public class EnemySpawner : MonoBehaviour
                 yield break;
             }
 
+            ScalePlayerStats();
             yield return StartCoroutine(RunWave(currentLevel, currentWave));
 
             int completedWave = currentWave;
@@ -459,5 +460,39 @@ public class EnemySpawner : MonoBehaviour
         public int hp;      // hp of enemy
         public int speed;   // speed of enemy
         public int damage;  // damage of enemy (base value)
+    }
+
+    void ScalePlayerStats()
+    {
+        var player = GameManager.Instance.player.GetComponent<PlayerController>();
+
+        var vars = new Dictionary<string, int>()
+    {
+        { "wave", currentWave }
+    };
+
+        int playerHP = RPNEvaluator.RPNEvaluator.Evaluate("95 wave 5 * +", vars);
+        int playerMana = RPNEvaluator.RPNEvaluator.Evaluate("90 wave 10 * +", vars);
+        int playerManaRegen = RPNEvaluator.RPNEvaluator.Evaluate("10 wave +", vars);
+        int playerSpellPower = RPNEvaluator.RPNEvaluator.Evaluate("wave 10 *", vars);
+        int playerSpeed = RPNEvaluator.RPNEvaluator.Evaluate("5", vars);
+
+        // Preserve HP %
+        player.hp.SetMaxHP(playerHP);
+
+        // Mana stats
+        player.spellcaster.maxmana = playerMana;
+        player.spellcaster.manaregen = playerManaRegen;
+
+        // Spell damage
+        player.spellcaster.spell.power = playerSpellPower;
+
+        // Movement speed
+        player.speed = playerSpeed;
+
+        // Refresh UI
+        player.healthui.SetHealth(player.hp);
+        player.manaui.SetSpellCaster(player.spellcaster);
+        player.spellui.SetSpell(player.spellcaster.spell);
     }
 }
