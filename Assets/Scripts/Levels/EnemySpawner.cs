@@ -188,24 +188,20 @@ public class EnemySpawner : MonoBehaviour
         int playerSpellPower = RPNEvaluator.RPNEvaluator.Evaluate("wave 10 *", vars);
         int playerSpeed = RPNEvaluator.RPNEvaluator.Evaluate("5", vars);
 
-        // Apply stats
-        player.hp = new Hittable(playerHP, Hittable.Team.PLAYER, player.gameObject);
-        player.hp.OnDeath += player.Die;
-        player.hp.team = Hittable.Team.PLAYER;
+        // Preserve HP percentage
+        player.hp.SetMaxHP(playerHP);
 
-        player.spellcaster = new SpellCaster(
-            playerMana,
-            playerManaRegen,
-            Hittable.Team.PLAYER
-        );
+        // Update spellcaster stats
+        player.spellcaster.maxmana = playerMana;
+        player.spellcaster.manaregen = playerManaRegen;
 
-        // spell power
+        // Update spell power
         player.spellcaster.spell.power = playerSpellPower;
 
-        // movement speed
+        // Update movement speed
         player.speed = playerSpeed;
 
-        // reconnect UI
+        // Refresh UI
         player.healthui.SetHealth(player.hp);
         player.manaui.SetSpellCaster(player.spellcaster);
         player.spellui.SetSpell(player.spellcaster.spell);
