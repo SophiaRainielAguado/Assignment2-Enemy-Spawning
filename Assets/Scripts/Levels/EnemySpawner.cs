@@ -170,9 +170,48 @@ public class EnemySpawner : MonoBehaviour
         }
 
         // Assign the selected level when player clicks button
+        // Assign the selected level when player clicks button
         GameManager.Instance.player.GetComponent<PlayerController>().StartLevel();
 
         var player = GameManager.Instance.player.GetComponent<PlayerController>();
+
+        // RPN variables
+        var vars = new Dictionary<string, int>()
+{
+    { "wave", currentWave }
+};
+
+        // Evaluate player stats
+        int playerHP = RPNEvaluator.RPNEvaluator.Evaluate("95 wave 5 * +", vars);
+        int playerMana = RPNEvaluator.RPNEvaluator.Evaluate("90 wave 10 * +", vars);
+        int playerManaRegen = RPNEvaluator.RPNEvaluator.Evaluate("10 wave +", vars);
+        int playerSpellPower = RPNEvaluator.RPNEvaluator.Evaluate("wave 10 *", vars);
+        int playerSpeed = RPNEvaluator.RPNEvaluator.Evaluate("5", vars);
+
+        // Apply stats
+        player.hp = new Hittable(playerHP, Hittable.Team.PLAYER, player.gameObject);
+        player.hp.OnDeath += player.Die;
+        player.hp.team = Hittable.Team.PLAYER;
+
+        player.spellcaster = new SpellCaster(
+            playerMana,
+            playerManaRegen,
+            Hittable.Team.PLAYER
+        );
+
+        // spell power
+        player.spellcaster.spell.power = playerSpellPower;
+
+        // movement speed
+        player.speed = playerSpeed;
+
+        // reconnect UI
+        player.healthui.SetHealth(player.hp);
+        player.manaui.SetSpellCaster(player.spellcaster);
+        player.spellui.SetSpell(player.spellcaster.spell);
+
+        // restart mana regeneration
+        player.StartCoroutine(player.spellcaster.ManaRegeneration());
 
         if (!playerDeathHooked)
         {
@@ -191,7 +230,7 @@ public class EnemySpawner : MonoBehaviour
         StartCoroutine(WaveLoop());
     }
 
-    // WAVE PREOGRESSIOn & EXECUTION
+    // WAVE PREOGRESSION & EXECUTION
     // WAVE EXECUTION: Runs a single wave
     IEnumerator RunWave(Level level, int currentWave)
     {

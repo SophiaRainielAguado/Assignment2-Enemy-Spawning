@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour
         unit.movement = value.Get<Vector2>()*speed;
     }
 
-    void Die()
+    public void Die()
     {
         Debug.Log("You Lost");
     }
