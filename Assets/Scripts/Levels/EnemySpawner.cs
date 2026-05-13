@@ -495,4 +495,16 @@ public class EnemySpawner : MonoBehaviour
         player.manaui.SetSpellCaster(player.spellcaster);
         player.spellui.SetSpell(player.spellcaster.spell);
     }
+
+    public class SpellsInfo
+    { 
+        public string name;
+        public string description;
+        public int icon;
+        public int damage;
+        public int mana_cost;
+        public int cooldown;
+        // Might need to add projectile info here later? Might not
+            // be necessary as we only need to get the damage value for player progression
+    }
 }
