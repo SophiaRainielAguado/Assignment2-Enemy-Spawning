@@ -177,9 +177,9 @@ public class EnemySpawner : MonoBehaviour
 
         // RPN variables
         var vars = new Dictionary<string, int>()
-{
-    { "wave", currentWave }
-};
+        {
+            { "wave", currentWave }
+        };
 
         // Evaluate player stats
         int playerHP = RPNEvaluator.RPNEvaluator.Evaluate("95 wave 5 * +", vars);
@@ -192,11 +192,11 @@ public class EnemySpawner : MonoBehaviour
         player.hp.SetMaxHP(playerHP);
 
         // Update spellcaster stats
-        player.spellcaster.maxmana = playerMana;
-        player.spellcaster.manaregen = playerManaRegen;
+        player.spellcaster.max_mana = playerMana;
+        player.spellcaster.mana_reg = playerManaRegen;
 
         // Update spell power
-        player.spellcaster.spell.power = playerSpellPower;
+        player.spellcaster.spell.damage = playerSpellPower;
 
         // Update movement speed
         player.speed = playerSpeed;
@@ -481,11 +481,11 @@ public class EnemySpawner : MonoBehaviour
         player.hp.SetMaxHP(playerHP);
 
         // Mana stats
-        player.spellcaster.maxmana = playerMana;
-        player.spellcaster.manaregen = playerManaRegen;
+        player.spellcaster.max_mana = playerMana;
+        player.spellcaster.mana_reg = playerManaRegen;
 
         // Spell damage
-        player.spellcaster.spell.power = playerSpellPower;
+        player.spellcaster.spell.damage = playerSpellPower;
 
         // Movement speed
         player.speed = playerSpeed;
