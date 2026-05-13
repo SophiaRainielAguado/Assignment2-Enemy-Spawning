@@ -10,7 +10,9 @@ public class SpellBuilder
 
     public Spell Build(SpellCaster owner)
     {
-        return new Spell(owner);
+        Spell spell = new Spell(owner);
+        spell.data = // load the spells.json file
+        return spell;
     }
 
    

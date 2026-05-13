@@ -195,9 +195,6 @@ public class EnemySpawner : MonoBehaviour
         player.spellcaster.max_mana = playerMana;
         player.spellcaster.mana_reg = playerManaRegen;
 
-        // Update spell power
-        player.spellcaster.spell.damage = playerSpellPower;
-
         // Update movement speed
         player.speed = playerSpeed;
 
@@ -474,7 +471,6 @@ public class EnemySpawner : MonoBehaviour
         int playerHP = RPNEvaluator.RPNEvaluator.Evaluate("95 wave 5 * +", vars);
         int playerMana = RPNEvaluator.RPNEvaluator.Evaluate("90 wave 10 * +", vars);
         int playerManaRegen = RPNEvaluator.RPNEvaluator.Evaluate("10 wave +", vars);
-        int playerSpellPower = RPNEvaluator.RPNEvaluator.Evaluate("wave 10 *", vars);
         int playerSpeed = RPNEvaluator.RPNEvaluator.Evaluate("5", vars);
 
         // Preserve HP %
@@ -483,9 +479,6 @@ public class EnemySpawner : MonoBehaviour
         // Mana stats
         player.spellcaster.max_mana = playerMana;
         player.spellcaster.mana_reg = playerManaRegen;
-
-        // Spell damage
-        player.spellcaster.spell.damage = playerSpellPower;
 
         // Movement speed
         player.speed = playerSpeed;

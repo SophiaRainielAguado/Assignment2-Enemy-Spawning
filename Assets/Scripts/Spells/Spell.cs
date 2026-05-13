@@ -43,6 +43,7 @@ public class Spell
     public float last_cast;
     public SpellCaster owner;
     public Hittable.Team team;
+    public spelldata data;
 
     public Spell(SpellCaster owner)
     {
@@ -81,6 +82,10 @@ public class Spell
 
     public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
     {
+        var vars = new Dictionary<string, int>()
+        {
+            { "wave", GameManager.Instance.currentWave }
+        };
         this.team = team;
         GameManager.Instance.projectileManager.CreateProjectile(0, "straight", where, target - where, 15f, OnHit);
         yield return new WaitForEndOfFrame();
