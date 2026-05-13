@@ -40,14 +40,15 @@ public class SecondaryProjectileInfo
 
 public class Spell 
 {
+    public spelldata data;
     public float last_cast;
     public SpellCaster owner;
     public Hittable.Team team;
-    public spelldata data;
 
-    public Spell(SpellCaster owner)
+    public Spell(SpellCaster owner, spelldata data)
     {
         this.owner = owner;
+        this.data = data;
     }
 
     public string GetName()
@@ -84,8 +85,9 @@ public class Spell
     {
         var vars = new Dictionary<string, int>()
         {
-            { "wave", GameManager.Instance.currentWave }
+            { "wave", owner.mana }
         };
+
         this.team = team;
         GameManager.Instance.projectileManager.CreateProjectile(0, "straight", where, target - where, 15f, OnHit);
         yield return new WaitForEndOfFrame();
