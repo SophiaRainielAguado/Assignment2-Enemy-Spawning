@@ -84,8 +84,8 @@ public class Spell
     public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
     {
         this.team = team;
-        GameManager.Instance.projectileManager.CreateProjectile(0, "straight", where, target - where, 15f, OnHit);
-        yield return new WaitForEndOfFrame();
+        GameManager.Instance.projectileManager.CreateProjectile(data.projectile.sprite, data.projectile.trajectory, where, target - where, 15f, OnHit);
+        yield return new WaitForEndOfFrame(); //make speed into the rpn thing 
     }
 
     void OnHit(Hittable other, Vector3 impact)

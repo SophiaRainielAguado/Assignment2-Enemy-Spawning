@@ -8,14 +8,17 @@ using System.Collections.Generic;
 public class SpellBuilder 
 {
 
-    public Spell Build(SpellCaster owner)
+    private Dictionary<string, SpellData> spellDictionary;
+    public Spell Build(string spellName, SpellCaster owner)
     {
-        return new Spell(owner);
+        SpellData spellInfo = spellDictionary[spellName];
+        return new Spell(owner, spellInfo);
     }
 
    
-    public SpellBuilder()
-    {        
+    public SpellBuilder(Dictionary<string, SpellData> spellDB)
+    {
+        spellDictionary = spellDB;
     }
 
 }
