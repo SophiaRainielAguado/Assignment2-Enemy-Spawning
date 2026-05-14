@@ -53,27 +53,27 @@ public class Spell
 
     public string GetName()
     {
-        return "Bolt";
+        return data.name;
     }
 
     public int GetManaCost()
     {
-        return 10;
+        return int.Parse(data.mana_cost);
     }
 
     public int GetDamage()
     {
-        return 100;
+        return int.Parse(data.damage.amount);
     }
 
     public float GetCooldown()
     {
-        return 0.75f;
+        return float.Parse(data.cooldown);
     }
 
     public virtual int GetIcon()
     {
-        return 0;
+        return data.icon;
     }
 
     public bool IsReady()

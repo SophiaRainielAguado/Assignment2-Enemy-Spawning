@@ -39,4 +39,9 @@ public class SpellCaster
         yield break;
     }
 
+    public void SetSpell(spelldata data)
+    {
+        spell = new Spell(this, data);
+    }
+
 }

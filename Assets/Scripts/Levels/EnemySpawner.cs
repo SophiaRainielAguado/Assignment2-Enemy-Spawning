@@ -12,6 +12,7 @@ public class EnemySpawner : MonoBehaviour
 {
     Dictionary<string, EnemyInfo> enemies; //creates dictionary that will store enemies
     Dictionary<string, Level> levels; // creates dictionary that will store levels
+    Dictionary<string, spelldata> spells;
 
     public Image level_selector;
     public GameObject button;
@@ -58,12 +59,23 @@ public class EnemySpawner : MonoBehaviour
             levels[l.name] = l;
         }
 
+        spells = new Dictionary<string, spelldata>();
+
+        var spellText = Resources.Load<TextAsset>("spells");
+        JToken jo3 = JToken.Parse(spellText.text);
+
+        foreach (var token in jo3)
+        {
+            spelldata s = token.ToObject<spelldata>();
+            spells[s.name] = s;
+        }
+
         int i = 0;
         foreach (var item in levels) //for every difficulty made
         {
             string levelname = item.Key;
             GameObject selector = Instantiate(button, level_selector.transform);
-            selector.transform.localPosition = new Vector3(0, 115 - ( 75 *i));
+            selector.transform.localPosition = new Vector3(0, 115 - (75 * i));
             selector.GetComponent<MenuSelectorController>().spawner = this;
             selector.GetComponent<MenuSelectorController>().SetLevel(levelname);
             i++;
@@ -75,7 +87,7 @@ public class EnemySpawner : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {       
+    {
     }
 
     void HandleGameOver(bool won)
@@ -267,6 +279,7 @@ public class EnemySpawner : MonoBehaviour
             yield return StartCoroutine(RunWave(currentLevel, currentWave));
 
             int completedWave = currentWave;
+            GiveSpellReward();
             currentWave++;
             GameManager.Instance.state = GameManager.GameState.WAVEEND;
 
@@ -368,9 +381,9 @@ public class EnemySpawner : MonoBehaviour
 
         // default variables for RPN - KEEP IN FUNCTIONS
         // Moving it to a general class-level dictionary will cause 3 issues:
-            // Stale Wave Values: old wave value may persist || is not updated everywhere
-            // Cross-Level Contamination: values from one level may affect another || if not cleared properly
-            // Hard to Debug: tracking variable changes across levels becomes difficult || if variables are modified in unexpected ways
+        // Stale Wave Values: old wave value may persist || is not updated everywhere
+        // Cross-Level Contamination: values from one level may affect another || if not cleared properly
+        // Hard to Debug: tracking variable changes across levels becomes difficult || if variables are modified in unexpected ways
         var vars = new Dictionary<string, int>()
         {
             { "wave", currentWave },
@@ -489,15 +502,17 @@ public class EnemySpawner : MonoBehaviour
         player.spellui.SetSpell(player.spellcaster.spell);
     }
 
-    public class SpellsInfo
-    { 
-        public string name;
-        public string description;
-        public int icon;
-        public int damage;
-        public int mana_cost;
-        public int cooldown;
-        // Might need to add projectile info here later? Might not
-            // be necessary as we only need to get the damage value for player progression
+    void GiveSpellReward()
+    {
+        var list = spells.Values.ToList();
+
+        if (list.Count == 0)
+            return;
+
+        spelldata reward = list[Random.Range(0, list.Count)];
+
+        var player = GameManager.Instance.player.GetComponent<PlayerController>();
+
+        player.spellcaster.SetSpell(reward);
     }
 }

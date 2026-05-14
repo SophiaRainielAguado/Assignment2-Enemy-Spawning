@@ -7,25 +7,16 @@ using System.Collections.Generic;
 
 public class SpellBuilder
 {
-    Dictionary<string, spelldata> spells;
+    private Dictionary<string, spelldata> spells;
 
-    public Spell Build(SpellCaster owner)
+    public SpellBuilder(Dictionary<string, spelldata> spells)
     {
-        var data = spells["Bolt"];
-        return new Spell(owner, data);
+        this.spells = spells;
     }
 
-    public SpellBuilder()
+    public Spell Build(SpellCaster owner, string spellName)
     {
-        spells = new Dictionary<string, spelldata>();
-
-        var spellText = Resources.Load<TextAsset>("spells");
-        JToken jo = JToken.Parse(spellText.text);
-
-        foreach (var token in jo)
-        {
-            spelldata s = token.ToObject<spelldata>();
-            spells[s.name] = s;
-        }
+        var data = spells[spellName];
+        return new Spell(owner, data);
     }
 }
