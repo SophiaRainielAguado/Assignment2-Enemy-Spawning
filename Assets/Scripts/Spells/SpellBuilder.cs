@@ -12,6 +12,9 @@ public class SpellBuilder
     public Spell Build(string spellName, SpellCaster owner)
     {
         SpellData spellInfo = spellDictionary[spellName];
+        switch (spellName){
+            
+        }
         return new Spell(owner, spellInfo);
     }
 

@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using System.Reflection.Metadata.Ecma335;
 
 
 public class SpellData // can be used for all the base spells; some fields will be left null 
@@ -95,6 +96,15 @@ public class Spell
             other.Damage(new Damage(GetDamage(), Damage.Type.ARCANE));
         }
 
+    }
+
+}
+
+public class ArcaneBolt : Spell
+{
+    public ArcaneBolt(SpellCaster owner, SpellData data) : base(owner, data)
+    {
+        //i don't think this needs any modifications?
     }
 
 }
