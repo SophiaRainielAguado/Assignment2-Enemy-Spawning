@@ -12,7 +12,12 @@ public class SpellBuilder
     public Spell Build(string spellName, SpellCaster owner)
     {
         SpellData spellInfo = spellDictionary[spellName];
-        switch (spellName){
+        switch (spellName)
+        {
+            case "arcane_bolt":
+                return new ArcaneBolt(owner, spellInfo);
+            case "magic_missile":
+                return new MagicMissile(owner, spellInfo);
             
         }
         return new Spell(owner, spellInfo);

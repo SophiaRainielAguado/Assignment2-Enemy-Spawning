@@ -52,22 +52,22 @@ public class Spell
         this.data = spelldata;
     }
 
-    public string GetName()
+    public virtual string GetName()
     {
         return data.name;
     }
 
-    public int GetManaCost()
+    public virtual int GetManaCost()
     {
         return data.mana_cost;
     }
 
-    public int GetDamage()
+    public virtual int GetDamage()
     {
         return data.damage; //not sure if i have to run it thru the calculator first?
     }
 
-    public float GetCooldown()
+    public virtual float GetCooldown()
     {
         return data.cooldown;
     }
@@ -102,9 +102,59 @@ public class Spell
 
 public class ArcaneBolt : Spell
 {
-    public ArcaneBolt(SpellCaster owner, SpellData data) : base(owner, data)
+    public ArcaneBolt(SpellCaster owner, SpellData data): base(owner, data) //the data is already carried over from base class as theres nothing addtl
     {
-        //i don't think this needs any modifications?
+    }
+}
+
+public class MagicMissile : Spell
+{
+    public MagicMissile(SpellCaster owner, SpellData data) : base(owner, data) //see above comment
+    { 
     }
 
 }
+public class SpellModifier : Spell
+{
+    protected Spell preSpell; //the spell that is being modified, protected because it's going to take from the higher class
+
+    public SpellModifier(Spell inner) : base(inner.owner, inner.data)
+    {
+        preSpell = inner;
+    }
+    public override int GetManaCost()
+    {
+        return preSpell.GetManaCost;
+    }
+    public override int GetDamage()
+    {
+       return preSpell.GetDamage; 
+    }
+    public float GetCooldown()
+    {
+        return preSpell.GetCooldown();
+    }
+     public override int GetIcon()
+    {
+        return preSpell.GetIcon();
+    }
+
+    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
+    {
+        yield return preSpell.Cast(where, target, team);
+    }
+}
+
+public class ModifierData
+{
+    public string name;
+    public string description;
+    public int?  damage_multiplier;
+    public int? mana_multiplier;
+    public int? speed_multiplier;
+    public int? cooldown_multiplier;
+    public int? angle;
+    public string? projectile_trajectory;
+    public int? mana_adder;
+}
+
