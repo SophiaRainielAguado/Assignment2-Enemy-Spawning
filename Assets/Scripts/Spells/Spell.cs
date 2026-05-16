@@ -15,7 +15,7 @@ public class SpellData // can be used for all the base spells; some fields will 
     public string mana_cost;
     public string cooldown;
     public ProjectileInfo projectile;
-    public SecondaryProjectileInfo secondary_projectile;
+    public SecondaryProjectileInfo? secondary_projectile;
 }
 
 public class DamageInfo
@@ -83,10 +83,16 @@ public class Spell
         return (last_cast + GetCooldown() < Time.time);
     }
 
+    public int GetSpeed()
+    {
+          //evaluate data.projectile.speed w the rpn later
+    }
+
     public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
     {
         this.team = team;
-        GameManager.Instance.projectileManager.CreateProjectile(data.projectile.sprite, data.projectile.trajectory, where, target - where, 15f, OnHit);
+        float speed = //get the RPN value on doing data.projectile.speed
+        GameManager.Instance.projectileManager.CreateProjectile(data.projectile.sprite, data.projectile.trajectory, where, target - where, speed, OnHit);
         yield return new WaitForEndOfFrame(); //make speed into the rpn thing 
     }
 
@@ -150,7 +156,7 @@ public class ModifierData
 {
     public string name;
     public string description;
-    public int?  damage_multiplier;
+    public int?  damage_multiplier; //just a buuuuunch of optional fields!!
     public int? mana_multiplier;
     public int? speed_multiplier;
     public int? cooldown_multiplier;
@@ -159,18 +165,18 @@ public class ModifierData
     public int? mana_adder;
 }
 
-public class DamageAmp : SpellModifier
+public class DamageAmpModifier : SpellModifier //and spell modifier draws from the main spell class, so that should carry down?
 {
     private ModifierData data;
-    public DamageAmpModifier(Spell inner, ModifierData modInfo)
+    public DamageAmpModifier(Spell inner, ModifierData modInfo) : base(inner)
     {
         data = modInfo;
     }
-    public override int getDamage()
+    public override int GetDamage()
     {
         return preSpell.GetDamage() * data.damage_multiplier.Value;
     }
-    public override int getManaCost()
+    public override int GetManaCost()
     {
         return preSpell.GetManaCost() * data.mana_multiplier.Value;
     }
@@ -183,7 +189,7 @@ public class SpeedAmp : SpellModifier
     {
         data = modInfo;
     }
-    public override IENumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
+    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
     {
         float speedMultiplier = data.speed_multiplier;
     }
