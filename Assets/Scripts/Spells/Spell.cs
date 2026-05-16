@@ -166,6 +166,7 @@ public class ModifierData
     public int? speed_multiplier;
     public int? cooldown_multiplier;
     public int? angle;
+    public int? delay;
     public string? projectile_trajectory;
     public int? mana_adder;
 }
@@ -199,5 +200,29 @@ public class SpeedAmp : SpellModifier
         float multiplier  = data.speed_multiplier;
         return preSpell.GetProjectileSpeed() * multiplier;
     }
+}
+
+public class Doubler : SpellModifier
+{
+    private ModifierData data; 
+    public Doubler(Spell inner, ModifierData modInfo)
+    {
+        data = modInfo;
+    }
+    protected override float GetManaCost()
+    {
+        return preSpell.GetManaCost() * data.mana_multiplier;
+    }
+    protected override float GetCooldown()
+    {
+        return preSpell.GetCooldown() * data.cooldown_multiplier;
+    }
+    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
+    {
+        yield return preSpell.Cast(where, target, team);
+        yield return new WaitForSeconds(data.delay);
+        yield return preSpell.Cast(where, target, team);
+    }
+
 }
 
