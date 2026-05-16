@@ -124,13 +124,13 @@ public class SpellModifier : Spell
     }
     public override int GetManaCost()
     {
-        return preSpell.GetManaCost;
+        return preSpell.GetManaCost();
     }
     public override int GetDamage()
     {
-       return preSpell.GetDamage; 
+       return preSpell.GetDamage(); 
     }
-    public float GetCooldown()
+    public override float GetCooldown()
     {
         return preSpell.GetCooldown();
     }
