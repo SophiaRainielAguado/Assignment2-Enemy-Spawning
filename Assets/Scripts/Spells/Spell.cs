@@ -205,7 +205,7 @@ public class SpeedAmp : SpellModifier
 public class Doubler : SpellModifier
 {
     private ModifierData data; 
-    public Doubler(Spell inner, ModifierData modInfo)
+    public Doubler(Spell inner, ModifierData modInfo) :base(inner)
     {
         data = modInfo;
     }
@@ -222,6 +222,31 @@ public class Doubler : SpellModifier
         yield return preSpell.Cast(where, target, team);
         yield return new WaitForSeconds(data.delay);
         yield return preSpell.Cast(where, target, team);
+    }
+}
+
+public class Splitter : SpellModifier
+{
+    private ModifierData data;
+    public Doubler(Spell inner, ModifierData modInfo): base(inner)
+    {
+        data = modInfo;
+    }
+    protected override float GetManaCost()
+    {
+        return preSpell.GetManaCost() * data.mana_multiplier;
+    }
+    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
+    {
+        Vector3 dir = (target - where).normalized;
+
+        float angle = data.angle;
+
+        Vector3 dir1 = Quaternion.Euler(0, 0, angle) * dir;
+        Vector3 dir2 = Quaternion.Euler(0, 0, -angle) * dir;
+
+        yield return preSpell.Cast(where, where + dir1, team);
+        yield return preSpell.Cast(where, where + dir2, team);
     }
 
 }
