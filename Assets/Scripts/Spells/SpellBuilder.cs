@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 
 
+
 public class SpellBuilder 
 {
 
@@ -18,7 +19,6 @@ public class SpellBuilder
                 return new ArcaneBolt(owner, spellInfo);
             case "magic_missile":
                 return new MagicMissile(owner, spellInfo);
-            
         }
         return new Spell(owner, spellInfo);
     }
@@ -29,4 +29,24 @@ public class SpellBuilder
         spellDictionary = spellDB;
     }
 
+}
+
+public class SpellModifierBuilder
+{
+    private Dictionary<string, ModifierData> modifierDictionary;
+
+    public SpellModifierBuilder Build(Dictionary<string, ModifierData> modifierDB)
+    {
+        modifierDictionary = modifierDB;
+    }
+    public Spell ApplyModifier(string modifierName, Spell spell)
+    {
+        ModifierData modifierInfo = modifierDictionary[modifierName];
+
+        switch (modifierName)
+        {
+            case "damage_amp":
+                return new DamageAmp(spell, modifierInfo);
+        }
+    }
 }

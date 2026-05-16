@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Numerics;
 
 
 public class SpellData // can be used for all the base spells; some fields will be left null 
@@ -156,5 +157,35 @@ public class ModifierData
     public int? angle;
     public string? projectile_trajectory;
     public int? mana_adder;
+}
+
+public class DamageAmp : SpellModifier
+{
+    private ModifierData data;
+    public DamageAmpModifier(Spell inner, ModifierData modInfo)
+    {
+        data = modInfo;
+    }
+    public override int getDamage()
+    {
+        return preSpell.GetDamage() * data.damage_multiplier.Value;
+    }
+    public override int getManaCost()
+    {
+        return preSpell.GetManaCost() * data.mana_multiplier.Value;
+    }
+}
+
+public class SpeedAmp : SpellModifier
+{
+    private ModifierData data;
+    public SpeedAmpModifier(Spell inner, ModifierData modInfo) : base(inner)
+    {
+        data = modInfo;
+    }
+    public override IENumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
+    {
+        float speedMultiplier = data.speed_multiplier;
+    }
 }
 
