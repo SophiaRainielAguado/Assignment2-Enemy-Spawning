@@ -83,7 +83,7 @@ public class Spell
         return (last_cast + GetCooldown() < Time.time);
     }
 
-    public int GetSpeed()
+    public float GetProjectileSpeed()
     {
           //evaluate data.projectile.speed w the rpn later
     }
@@ -91,7 +91,7 @@ public class Spell
     public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
     {
         this.team = team;
-        float speed = //get the RPN value on doing data.projectile.speed
+        float speed = GetProjectileSpeed();
         GameManager.Instance.projectileManager.CreateProjectile(data.projectile.sprite, data.projectile.trajectory, where, target - where, speed, OnHit);
         yield return new WaitForEndOfFrame(); //make speed into the rpn thing 
     }
@@ -146,6 +146,11 @@ public class SpellModifier : Spell
         return preSpell.GetIcon();
     }
 
+    protected override float GetProjectileSpeed()
+    {
+        return preSpell.GetProjectileSpeed();
+    }
+
     public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
     {
         yield return preSpell.Cast(where, target, team);
@@ -189,9 +194,10 @@ public class SpeedAmp : SpellModifier
     {
         data = modInfo;
     }
-    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
+    protected override float GetProjectileSpeed()
     {
-        float speedMultiplier = data.speed_multiplier;
+        float multiplier  = data.speed_multiplier;
+        return preSpell.GetProjectileSpeed() * multiplier;
     }
 }
 
