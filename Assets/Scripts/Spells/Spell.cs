@@ -145,6 +145,7 @@ public class Spell
                 );
             }
         }
+        last_cast = Time.time;
     }
 
 }
@@ -180,32 +181,24 @@ public class SpellModifier : Spell
     {
         return preSpell.GetManaCost(spellpower);
     }
+
     public override int GetDamage(int spellpower, int wave)
     {
-       return preSpell.GetDamage(spellpower, wave);
+        return preSpell.GetDamage(spellpower, wave);
     }
+
+    public override float GetProjectileSpeed(int spellpower, int wave)
+    {
+        return preSpell.GetProjectileSpeed(spellpower, wave);
+    }
+
     public override float GetCooldown(int spellpower, int wave)
     {
         return preSpell.GetCooldown(spellpower, wave);
     }
-     public override int GetIcon()
-    {
-        return preSpell.GetIcon();
-    }
-
-    protected override float GetProjectileSpeed(int spellpower, int wave)
-    {
-        return preSpell.GetProjectileSpeed(spellpower, wave);
-    }
     public override string GetTrajectory()
     {
         return preSpell.GetTrajectory();
-    }
-
-    public override IEnumerator Cast(Vector3 where, Vector3 target,
-        Hittable.Team team, int power, int wave)
-    {
-        yield return preSpell.Cast(where, target, team, power, wave);
     }
 }
 
@@ -236,13 +229,15 @@ public class DamageAmpModifier : SpellModifier //and spell modifier draws from t
     {
         data = modInfo;
     }
-    public override int GetDamage()
+    public override int GetDamage(int spellpower, int wave)
     {
-        return preSpell.GetDamage() * data.damage_multiplier.Value;
+        int mult = data.damage_multiplier ?? 1;
+        return preSpell.GetDamage(spellpower, wave) * mult;
     }
-    public override int GetManaCost()
+    public override int GetManaCost(int spellpower)
     {
-        return preSpell.GetManaCost() * data.mana_multiplier.Value;
+        int mult = data.mana_multiplier ?? 1;
+        return preSpell.GetManaCost(spellpower) * mult;
     }
 }
 
@@ -253,10 +248,10 @@ public class SpeedAmp : SpellModifier
     {
         data = modInfo;
     }
-    protected override float GetProjectileSpeed()
+    public override float GetProjectileSpeed(int spellpower, int wave)
     {
-        int multiplier  = data.speed_multiplier;
-        return preSpell.GetProjectileSpeed() * multiplier;
+        int multiplier = data.speed_multiplier ?? 1;
+        return preSpell.GetProjectileSpeed(spellpower, wave) * multiplier;
     }
 }
 
@@ -267,11 +262,11 @@ public class Doubler : SpellModifier
     {
         data = modInfo;
     }
-    protected override int GetManaCost()
+    public override int GetManaCost(int spellpower)
     {
-        return preSpell.GetManaCost() * data.mana_multiplier;
+        return preSpell.GetManaCost(spellpower) * (data.mana_multiplier ?? 1);
     }
-    protected override float GetCooldown()
+    public override float GetCooldown(int spellpower, int wave)
     {
         var vars = new Dictionary<string, int>()
         {
@@ -281,11 +276,11 @@ public class Doubler : SpellModifier
 
         return RPNEvaluator.RPNEvaluator.Evaluate(data.cooldown, vars);
     }
-    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
+    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team, int power, int wave)
     {
-        yield return preSpell.Cast(where, target, team);
-        yield return new WaitForSeconds(data.delay);
-        yield return preSpell.Cast(where, target, team);
+        yield return preSpell.Cast(where, target, team, power, wave);
+        yield return new WaitForSeconds(data.delay.GetValueOrDefault());
+        yield return preSpell.Cast(where, target, team, power, wave);
     }
 }
 
@@ -296,21 +291,21 @@ public class Splitter : SpellModifier
     {
         data = modInfo;
     }
-    protected override int GetManaCost()
+    public override int GetManaCost(int spellpower)
     {
-        return preSpell.GetManaCost() * data.mana_multiplier;
+        return preSpell.GetManaCost(spellpower);
     }
-    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
+    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team, int power, int wave)
     {
         Vector3 dir = (target - where).normalized;
 
-        float angle = data.angle;
+        float angle = data.angle ?? 0;
 
         Vector3 dir1 = Quaternion.Euler(0, 0, angle) * dir;
         Vector3 dir2 = Quaternion.Euler(0, 0, -angle) * dir;
 
-        yield return preSpell.Cast(where, where + dir1, team);
-        yield return preSpell.Cast(where, where + dir2, team);
+        yield return preSpell.Cast(where, where + dir1, team, power, wave);
+        yield return preSpell.Cast(where, where + dir2, team, power, wave);
     }
 }
 
@@ -322,17 +317,20 @@ public class Chaos : SpellModifier
     {
         data = modInfo;
     }
-    protected override int GetDamage(int spellpower, int wave)
+    public override int GetDamage(int spellpower, int wave)
     {
-        var vars = new Dictionary<string, int>()
-          {
-              {"power", spellpower,
-              "wave", wave}
-          };
+        int baseDamage = preSpell.GetDamage(spellpower, wave);
 
-        return RPNEvaluator.RPNEvaluator.Evaluate(data.projectile.speed,vars);
+        var vars = new Dictionary<string, int>
+        {
+            { "power", spellpower },
+            { "wave", wave },
+            { "base", baseDamage }
+        };
+
+        return RPNEvaluator.RPNEvaluator.Evaluate(data.damage.amount, vars);
     }
-    protected override string GetTrajectory()
+    public override string GetTrajectory()
     {
         return data.projectile_trajectory ?? preSpell.GetTrajectory();
     }
@@ -346,15 +344,17 @@ public class Homing : SpellModifier
     {
         data = modInfo;
     }
-    protected override int GetDamage()
+    public override int GetDamage(int spellpower, int wave)
     {
-        return preSpell.GetDamage() * data.damage_multiplier ?? 1;
+        int mult = data.damage_multiplier ?? 1;
+        return preSpell.GetDamage(spellpower, wave) * mult;
     }
-    protected override int GetManaCost()
+    public override int GetManaCost(int spellpower)
     {
-        return preSpell.GetManaCost() + data.mana_adder ?? 0;
+        int add = data.mana_adder ?? 0;
+        return preSpell.GetManaCost(spellpower) + add;
     }
-    protected override string GetTrajectory()
+    public override string GetTrajectory()
     {
         return data.projectile_trajectory ?? preSpell.GetTrajectory();
     }
