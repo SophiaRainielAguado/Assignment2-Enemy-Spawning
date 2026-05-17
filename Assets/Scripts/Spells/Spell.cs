@@ -83,9 +83,14 @@ public class Spell
         return (last_cast + GetCooldown() < Time.time);
     }
 
-    public float GetProjectileSpeed()
+    public virtual float GetProjectileSpeed()
     {
           //evaluate data.projectile.speed w the rpn later
+    }
+
+    public virtual string GetTrajectory()
+    {
+        return data.projectile.trajectory;
     }
 
     public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
@@ -149,6 +154,10 @@ public class SpellModifier : Spell
     protected override float GetProjectileSpeed()
     {
         return preSpell.GetProjectileSpeed();
+    }
+    public override string GetTrajectory()
+    {
+        return preSpell.GetTrajectory();
     }
 
     public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
@@ -228,7 +237,7 @@ public class Doubler : SpellModifier
 public class Splitter : SpellModifier
 {
     private ModifierData data;
-    public Doubler(Spell inner, ModifierData modInfo): base(inner)
+    public Splitter(Spell inner, ModifierData modInfo): base(inner)
     {
         data = modInfo;
     }
@@ -248,6 +257,45 @@ public class Splitter : SpellModifier
         yield return preSpell.Cast(where, where + dir1, team);
         yield return preSpell.Cast(where, where + dir2, team);
     }
+}
 
+public class Chaos : SpellModifier
+{
+    private ModifierData data;
+
+    public Chaos(Spell inner, ModifierData modInfo): base(inner)
+    {
+        data = modInfo;
+    }
+    protected override float GetDamage()
+    {
+        return preSpell.GetDamage(); // multiply and calculate damage with RPN
+    }
+    protected override float GetTrajectory()
+    {
+        return data.projectile_trajectory;
+    }
+
+}
+
+public class Homing : SpellModifier
+{
+    private ModifierData data;
+    public Homing(Spell inner, ModifierData modInfo) : base(inner)
+    {
+        data = modInfo;
+    }
+    protected override float GetDamage()
+    {
+        return preSpell.GetDamage() * data.damage_multiplier;
+    }
+    protected override float GetManaCost()
+    {
+        return preSpell.GetManaCost() + data.mana_adder;
+    }
+    protected override float GetTrajectory()
+    {
+        return data.projectile_trajectory;
+    }
 }
 
