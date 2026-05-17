@@ -3,6 +3,7 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Threading.Channels;
 
 
 
@@ -47,6 +48,16 @@ public class SpellModifierBuilder
         {
             case "damage_amp":
                 return new DamageAmp(spell, modifierInfo);
+            case "speed_amp":
+                return new SpeedAmp(spell, modifierInfo);
+            case "doubler":
+                return new Doubler(spell, modifierInfo);
+            case "splitter":
+                return new Splitter(spell, modifierInfo);
+            case "chaos":
+                return new Chaos(spell,modifierInfo);
+            case "homing":
+                return new Homing(spell,modifierInfo);
         }
     }
 }
