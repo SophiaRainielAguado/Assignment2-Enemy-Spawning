@@ -36,18 +36,21 @@ public class SpellModifierBuilder
 {
     private Dictionary<string, ModifierData> modifierDictionary;
 
-    public SpellModifierBuilder Build(Dictionary<string, ModifierData> modifierDB)
+    public SpellModifierBuilder(Dictionary<string, ModifierData> modifierDB)
     {
         modifierDictionary = modifierDB;
     }
     public Spell ApplyModifier(string modifierName, Spell spell)
     {
+        if (!modifierDictionary.ContainsKey(modifierName))
+            return spell;
+
         ModifierData modifierInfo = modifierDictionary[modifierName];
 
         switch (modifierName)
         {
             case "damage_amp":
-                return new DamageAmp(spell, modifierInfo);
+                return new DamageAmpModifier(spell, modifierInfo);
             case "speed_amp":
                 return new SpeedAmp(spell, modifierInfo);
             case "doubler":
@@ -59,5 +62,6 @@ public class SpellModifierBuilder
             case "homing":
                 return new Homing(spell,modifierInfo);
         }
+        return spell;
     }
 }
