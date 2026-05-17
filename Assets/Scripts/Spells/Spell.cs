@@ -70,11 +70,12 @@ public class Spell
         return RPNEvaluator.RPNEvaluator.Evaluate(data.mana_cost, vars);
     }
 
-    public int GetDamage(int spellpower)
+    public int GetDamage(int spellpower, int wave)
     {
         var vars = new Dictionary<string, int>()
         {
-            { "power", spellpower }
+            { "power", spellpower, 
+             "wave", wave}
         };
 
     return RPNEvaluator.RPNEvaluator.Evaluate(data.damage.amount,vars);
@@ -110,21 +111,22 @@ public class Spell
         return data.projectile.trajectory;
     }
 
-    public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team) //my main confusion is stemming from if power should be a parameter of Cast/OnHit
+    public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team, int power, int wave) //my main confusion is stemming from if power should be a parameter of Cast/OnHit
     {                                                                                  //since GetProjectile and GetDamage are within these functions and therefore need it? 
         this.team = team;
-        float speed = GetProjectileSpeed(power);
+        float speed = GetProjectileSpeed(power, wave);
         GameManager.Instance.projectileManager.CreateProjectile(data.projectile.sprite, data.projectile.trajectory, where, target - where, speed, OnHit);
         yield return new WaitForEndOfFrame(); //make speed into the rpn thing 
-    }
+    
 
-    void OnHit(Hittable other, Vector3 impact) //
-    {
-        if (other.team != team)
+        void OnHit(Hittable other, Vector3 impact) //
         {
-            other.Damage(new Damage(GetDamage(power), Damage.Type.ARCANE));
-        }
+            if (other.team != team)
+            {
+                other.Damage(new Damage(GetDamage(power), Damage.Type.ARCANE));
+            }
 
+        }
     }
 
 }
@@ -295,9 +297,15 @@ public class Chaos : SpellModifier
     {
         data = modInfo;
     }
-    protected override int GetDamage()
+    protected override int GetDamage(int spellpower, int wave)
     {
-        return preSpell.GetDamage(); // multiply and calculate damage with RPN
+        var vars = new Dictionary<string, int>()
+          {
+              {"power", spellpower,
+              "wave", wave}
+          };
+
+        return RPNEvaluator.RPNEvaluator.Evaluate(data.projectile.speed,vars);
     }
     protected override string GetTrajectory()
     {
