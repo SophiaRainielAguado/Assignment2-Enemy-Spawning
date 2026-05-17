@@ -55,32 +55,29 @@ public class Spell
         this.data = spelldata;
     }
 
-    protected float Eval(string expression)
-    {
-        if (string.IsNullOrEmpty(expression))
-            return 0;
-
-        return (float)RPNEvaluator.RPNEvaluator.Evaluate(expression, GetRpnVars()); 
-    }
-
-    protected Dictionary<string, int> GetRpnVars()
-    {
-       // the part im confused on. fields like damage.amount for example rely on RPN calculations being made based on power or waves
-    }
-
     public virtual string GetName()
     {
         return data.name;
     }
 
-    public virtual int GetManaCost()
+    public virtual int GetManaCost(int spellpower)
     {
-        return data.mana_cost;
+        var vars = new Dictionary<string, int>()
+        {
+            {"power", spellpower}
+        };
+
+        return RPNEvaluator.RPNEvaluator.Evaluate(data.mana_cost, vars);
     }
 
-    public virtual int GetDamage()
+    public int GetDamage(int spellpower)
     {
-        return data.damage; //not sure if i have to run it thru the calculator first?
+        var vars = new Dictionary<string, int>()
+        {
+            { "power", spellpower }
+        };
+
+    return RPNEvaluator.RPNEvaluator.Evaluate(data.damage.amount,vars);
     }
 
     public virtual float GetCooldown()
@@ -98,9 +95,13 @@ public class Spell
         return (last_cast + GetCooldown() < Time.time);
     }
 
-    public virtual float GetProjectileSpeed()
+    public virtual float GetProjectileSpeed(int spellpower)
     {
-          //evaluate data.projectile.speed w the rpn later
+          var vars = new Dictionary<string, int>()
+          {
+              {"power", spellpower}
+          };
+        return RPNEvaluator.RPNEvaluator.Evaluate(data.projectile.speed, vars);
     }
 
     public virtual string GetTrajectory()
