@@ -17,6 +17,7 @@ public class SpellData // can be used for all the base spells; some fields will 
     public string cooldown;
     public ProjectileInfo projectile;
     public SecondaryProjectileInfo? secondary_projectile;
+    public string category;
 }
 // some fields for the spells require their own classes. these are them.
 public class DamageInfo
@@ -186,6 +187,8 @@ public class ModifierData
     public int? delay;
     public string? projectile_trajectory;
     public int? mana_adder;
+    public string category;
+
 }
 
 // THESE are the classes for spell modifiers!! VV

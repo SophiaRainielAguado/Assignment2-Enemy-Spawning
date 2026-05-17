@@ -7,6 +7,8 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Linq;
 using TMPro;
+using System.Runtime.Versioning;
+using System.Text.Json;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -67,6 +69,27 @@ public class EnemySpawner : MonoBehaviour
             selector.GetComponent<MenuSelectorController>().spawner = this;
             selector.GetComponent<MenuSelectorController>().SetLevel(levelname);
             i++;
+        }
+
+        spells = new Dictionary<string, SpellData>();
+        modspells = new Dictionary<string, ModifierData>();
+
+        var spellText = Resources.Load<TextAsset>("spells");
+        JToken jo3 = JToken.Parse(spellText.text);
+        foreach (var spellToken in jo3){
+            
+            if (spellToken["category"].ToString() == "Base spell")
+            {
+                SpellData s = spellToken.ToObject<SpellData>();
+                spells[s.name] = s;
+                
+            }
+            if (spellToken["category"].ToString() == "Modifier spell")
+            {
+                ModifierData m = spellToken.ToObject<ModifierData>();
+                modspells[m.name] = m;
+                
+            }
         }
 
 
