@@ -70,20 +70,26 @@ public class Spell
         return RPNEvaluator.RPNEvaluator.Evaluate(data.mana_cost, vars);
     }
 
-    public int GetDamage(int spellpower, int wave)
+    public virtual int GetDamage(int spellpower, int wave)
     {
         var vars = new Dictionary<string, int>()
         {
-            { "power", spellpower, 
-             "wave", wave}
+            { "power", spellpower },
+            { "wave", wave }
         };
 
-    return RPNEvaluator.RPNEvaluator.Evaluate(data.damage.amount,vars);
+        return RPNEvaluator.RPNEvaluator.Evaluate(data.damage.amount, vars);
     }
 
-    public virtual float GetCooldown()
+    public virtual float GetCooldown(int spellpower, int wave)
     {
-        return data.cooldown;
+        var vars = new Dictionary<string, int>()
+        {
+            { "power", spellpower },
+            { "wave", wave }
+        };
+
+        return RPNEvaluator.RPNEvaluator.Evaluate(data.cooldown, vars);
     }
 
     public virtual int GetIcon()
@@ -91,12 +97,12 @@ public class Spell
         return data.icon;
     }
 
-    public bool IsReady()
+    public bool IsReady(int spellpower, int wave)
     {
-        return (last_cast + GetCooldown() < Time.time);
+        return last_cast + GetCooldown(spellpower, wave) < Time.time;
     }
 
-    public virtual float GetProjectileSpeed(int spellpower)
+    public virtual float GetProjectileSpeed(int spellpower, int wave)
     {
           var vars = new Dictionary<string, int>()
           {
@@ -111,21 +117,33 @@ public class Spell
         return data.projectile.trajectory;
     }
 
-    public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team, int power, int wave) //my main confusion is stemming from if power should be a parameter of Cast/OnHit
-    {                                                                                  //since GetProjectile and GetDamage are within these functions and therefore need it? 
+    public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team, int power, int wave)
+    {
         this.team = team;
         float speed = GetProjectileSpeed(power, wave);
-        GameManager.Instance.projectileManager.CreateProjectile(data.projectile.sprite, data.projectile.trajectory, where, target - where, speed, OnHit);
-        yield return new WaitForEndOfFrame(); //make speed into the rpn thing 
-    
 
-        void OnHit(Hittable other, Vector3 impact) //
+        GameManager.Instance.projectileManager.CreateProjectile(
+            data.projectile.sprite,
+            data.projectile.trajectory,
+            where,
+            target - where,
+            speed,
+            OnHit
+        );
+
+        yield return new WaitForEndOfFrame();
+
+        void OnHit(Hittable other, Vector3 impact)
         {
             if (other.team != team)
             {
-                other.Damage(new Damage(GetDamage(power), Damage.Type.ARCANE));
+                other.Damage(
+                    new Damage(
+                        GetDamage(power, wave),
+                        Damage.Type.ARCANE
+                    )
+                );
             }
-
         }
     }
 
@@ -158,35 +176,36 @@ public class SpellModifier : Spell
     {
         preSpell = inner;
     }
-    public override int GetManaCost()
+    public override int GetManaCost(int spellpower)
     {
-        return preSpell.GetManaCost();
+        return preSpell.GetManaCost(spellpower);
     }
-    public override int GetDamage()
+    public override int GetDamage(int spellpower, int wave)
     {
-       return preSpell.GetDamage(); 
+       return preSpell.GetDamage(spellpower, wave);
     }
-    public override float GetCooldown()
+    public override float GetCooldown(int spellpower, int wave)
     {
-        return preSpell.GetCooldown();
+        return preSpell.GetCooldown(spellpower, wave);
     }
      public override int GetIcon()
     {
         return preSpell.GetIcon();
     }
 
-    protected override float GetProjectileSpeed()
+    protected override float GetProjectileSpeed(int spellpower, int wave)
     {
-        return preSpell.GetProjectileSpeed();
+        return preSpell.GetProjectileSpeed(spellpower, wave);
     }
     public override string GetTrajectory()
     {
         return preSpell.GetTrajectory();
     }
 
-    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
+    public override IEnumerator Cast(Vector3 where, Vector3 target,
+        Hittable.Team team, int power, int wave)
     {
-        yield return preSpell.Cast(where, target, team);
+        yield return preSpell.Cast(where, target, team, power, wave);
     }
 }
 
@@ -254,7 +273,13 @@ public class Doubler : SpellModifier
     }
     protected override float GetCooldown()
     {
-        return preSpell.GetCooldown() * data.cooldown_multiplier;
+        var vars = new Dictionary<string, int>()
+        {
+            { "power", spellpower },
+            { "wave", wave }
+        };
+
+        return RPNEvaluator.RPNEvaluator.Evaluate(data.cooldown, vars);
     }
     public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
     {
