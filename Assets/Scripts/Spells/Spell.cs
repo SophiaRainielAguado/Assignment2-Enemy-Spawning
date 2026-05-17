@@ -12,12 +12,13 @@ public class SpellData // can be used for all the base spells; some fields will 
     public string description;
     public int icon;
     public DamageInfo damage;
+    public string N; 
     public string mana_cost;
     public string cooldown;
     public ProjectileInfo projectile;
     public SecondaryProjectileInfo? secondary_projectile;
 }
-
+// some fields for the spells require their own classes. these are them.
 public class DamageInfo
 {
     public string amount;
@@ -39,7 +40,7 @@ public class SecondaryProjectileInfo
     public int sprite;
 }
 
-
+// the base class for spells but not modifier spells (Except for the base modifier spell class, since it hands things down to those)
 public class Spell 
 {
     public float last_cast;
@@ -112,6 +113,9 @@ public class Spell
 
 }
 
+//base spellz... dont have any additional fields so they can just inherit from the base spell class with no other additions
+//but it's nice having them here for organizational purposes.
+
 public class ArcaneBolt : Spell
 {
     public ArcaneBolt(SpellCaster owner, SpellData data): base(owner, data) //the data is already carried over from base class as theres nothing addtl
@@ -126,6 +130,8 @@ public class MagicMissile : Spell
     }
 
 }
+
+// Class that modify spells (this base one is just a bunch of overrides that return the "pre" spell with no alterations)
 public class SpellModifier : Spell
 {
     protected Spell preSpell; //the spell that is being modified, protected because it's going to take from the higher class
@@ -166,6 +172,8 @@ public class SpellModifier : Spell
     }
 }
 
+
+//the class for spell mods themselves... lots of superflous fields except for name/desc
 public class ModifierData
 {
     public string name;
@@ -179,6 +187,8 @@ public class ModifierData
     public string? projectile_trajectory;
     public int? mana_adder;
 }
+
+// THESE are the classes for spell modifiers!! VV
 
 public class DamageAmpModifier : SpellModifier //and spell modifier draws from the main spell class, so that should carry down?
 {
@@ -241,7 +251,7 @@ public class Splitter : SpellModifier
     {
         data = modInfo;
     }
-    protected override float GetManaCost()
+    protected override int GetManaCost()
     {
         return preSpell.GetManaCost() * data.mana_multiplier;
     }
