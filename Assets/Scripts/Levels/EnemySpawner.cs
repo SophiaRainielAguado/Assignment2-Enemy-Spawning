@@ -472,13 +472,13 @@ public class EnemySpawner : MonoBehaviour
         public int damage;  // damage of enemy (base value)
     }
 
-    void ScalePlayerStats()
+    void ScalePlayerStats(int wave)
     {
         var player = GameManager.Instance.player.GetComponent<PlayerController>();
 
         var vars = new Dictionary<string, int>()
     {
-        { "wave", currentWave }
+        { "wave", wave }
     };
 
         int playerHP = RPNEvaluator.RPNEvaluator.Evaluate("95 wave 5 * +", vars);
@@ -486,17 +486,11 @@ public class EnemySpawner : MonoBehaviour
         int playerManaRegen = RPNEvaluator.RPNEvaluator.Evaluate("10 wave +", vars);
         int playerSpeed = RPNEvaluator.RPNEvaluator.Evaluate("5", vars);
 
-        // Preserve HP %
         player.hp.SetMaxHP(playerHP);
-
-        // Mana stats
         player.spellcaster.max_mana = playerMana;
         player.spellcaster.mana_reg = playerManaRegen;
-
-        // Movement speed
         player.speed = playerSpeed;
 
-        // Refresh UI
         player.healthui.SetHealth(player.hp);
         player.manaui.SetSpellCaster(player.spellcaster);
         player.spellui.SetSpell(player.spellcaster.spell);
