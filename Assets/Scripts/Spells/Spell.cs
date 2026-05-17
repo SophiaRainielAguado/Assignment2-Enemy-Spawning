@@ -64,7 +64,7 @@ public class Spell
     {
         var vars = new Dictionary<string, int>()
         {
-            {"power", spellpower}
+            { "power", spellpower}
         };
 
         return RPNEvaluator.RPNEvaluator.Evaluate(data.mana_cost, vars);
@@ -101,7 +101,8 @@ public class Spell
           {
               {"power", spellpower}
           };
-        return RPNEvaluator.RPNEvaluator.Evaluate(data.projectile.speed, vars);
+
+        return RPNEvaluator.RPNEvaluator.Evaluate(data.projectile.speed,vars);
     }
 
     public virtual string GetTrajectory()
@@ -109,19 +110,19 @@ public class Spell
         return data.projectile.trajectory;
     }
 
-    public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team)
-    {
+    public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team) //my main confusion is stemming from if power should be a parameter of Cast/OnHit
+    {                                                                                  //since GetProjectile and GetDamage are within these functions and therefore need it? 
         this.team = team;
-        float speed = GetProjectileSpeed();
+        float speed = GetProjectileSpeed(power);
         GameManager.Instance.projectileManager.CreateProjectile(data.projectile.sprite, data.projectile.trajectory, where, target - where, speed, OnHit);
         yield return new WaitForEndOfFrame(); //make speed into the rpn thing 
     }
 
-    void OnHit(Hittable other, Vector3 impact)
+    void OnHit(Hittable other, Vector3 impact) //
     {
         if (other.team != team)
         {
-            other.Damage(new Damage(GetDamage(), Damage.Type.ARCANE));
+            other.Damage(new Damage(GetDamage(power), Damage.Type.ARCANE));
         }
 
     }
