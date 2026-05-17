@@ -8,13 +8,13 @@ using System.Collections;
 using System.Linq;
 using TMPro;
 using System.Runtime.Versioning;
-using System.Text.Json;
 
 public class EnemySpawner : MonoBehaviour
 {
     Dictionary<string, EnemyInfo> enemies; //creates dictionary that will store enemies
     Dictionary<string, Level> levels; // creates dictionary that will store levels
-    Dictionary<string, spelldata> spells;
+    Dictionary<string, SpellData> spells;
+    Dictionary<string, ModifierData> modspells;
 
     public Image level_selector;
     public GameObject button;
@@ -30,7 +30,7 @@ public class EnemySpawner : MonoBehaviour
     public TMP_Text gameOverText;
 
     private Level currentLevel;
-    private int currentWave = 0;
+    public int currentWave = 0;
     private int enemiesKilledThisWave = 0;
     private float waveStartTime;
     private float waveDuration;
@@ -61,50 +61,27 @@ public class EnemySpawner : MonoBehaviour
             levels[l.name] = l;
         }
 
-        spells = new Dictionary<string, spelldata>();
-
         var spellText = Resources.Load<TextAsset>("spells");
-        JToken jo3 = JToken.Parse(spellText.text);
-
-        foreach (var token in jo3)
-        {
-            spelldata s = token.ToObject<spelldata>();
-            spells[s.name] = s;
-        }
-
-        int i = 0;
-        foreach (var item in levels) //for every difficulty made
-        {
-            string levelname = item.Key;
-            GameObject selector = Instantiate(button, level_selector.transform);
-            selector.transform.localPosition = new Vector3(0, 115 - (75 * i));
-            selector.GetComponent<MenuSelectorController>().spawner = this;
-            selector.GetComponent<MenuSelectorController>().SetLevel(levelname);
-            i++;
-        }
+        var spellJson = JToken.Parse(spellText.text);
 
         spells = new Dictionary<string, SpellData>();
         modspells = new Dictionary<string, ModifierData>();
 
-        var spellText = Resources.Load<TextAsset>("spells");
-        JToken jo3 = JToken.Parse(spellText.text);
-        foreach (var spellToken in jo3){
-            
-            if (spellToken["category"].ToString() == "Base spell")
+        foreach (var spellToken in spellJson)
+        {
+            string category = spellToken["category"].ToString();
+
+            if (category == "Base spell")
             {
                 SpellData s = spellToken.ToObject<SpellData>();
                 spells[s.name] = s;
-                
             }
-            if (spellToken["category"].ToString() == "Modifier spell")
+            else if (category == "Modifier spell")
             {
                 ModifierData m = spellToken.ToObject<ModifierData>();
                 modspells[m.name] = m;
-                
             }
         }
-
-
 
     }
 
@@ -298,7 +275,7 @@ public class EnemySpawner : MonoBehaviour
                 yield break;
             }
 
-            ScalePlayerStats();
+            ScalePlayerStats(currentWave);
             yield return StartCoroutine(RunWave(currentLevel, currentWave));
 
             int completedWave = currentWave;
@@ -526,10 +503,10 @@ public class EnemySpawner : MonoBehaviour
         if (list.Count == 0)
             return;
 
-        spelldata reward = list[Random.Range(0, list.Count)];
+        SpellData reward = list[Random.Range(0, list.Count)];
 
         var player = GameManager.Instance.player.GetComponent<PlayerController>();
 
-        player.spellcaster.SetSpell(reward);
+        player.spellcaster.SetSpell(reward.name);
     }
 }

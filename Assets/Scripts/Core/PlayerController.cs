@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     public ManaBar manaui;
 
     public SpellCaster spellcaster;
+    public SpellBuilder spellBuilder;
     public SpellUI spellui;
 
     public int speed;
@@ -27,7 +28,8 @@ public class PlayerController : MonoBehaviour
 
     public void StartLevel()
     {
-        spellcaster = new SpellCaster(125, 8, Hittable.Team.PLAYER);
+        spellcaster = new SpellCaster(125, 8, 8,
+            Hittable.Team.PLAYER, this.spellBuilder);
         StartCoroutine(spellcaster.ManaRegeneration());
         
         hp = new Hittable(100, Hittable.Team.PLAYER, gameObject);

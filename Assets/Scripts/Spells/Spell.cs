@@ -2,9 +2,6 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Numerics;
-
 
 public class SpellData // can be used for all the base spells; some fields will be left null 
 {
@@ -117,7 +114,7 @@ public class Spell
         return data.projectile.trajectory;
     }
 
-    public virtual IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team, int power, int wave)
+    public virtual IEnumerator Cast(UnityEngine.Vector3 where, UnityEngine.Vector3 target, Hittable.Team team, int power, int wave)
     {
         this.team = team;
         float speed = GetProjectileSpeed(power, wave);
@@ -133,7 +130,7 @@ public class Spell
 
         yield return new WaitForEndOfFrame();
 
-        void OnHit(Hittable other, Vector3 impact)
+        void OnHit(Hittable other, UnityEngine.Vector3 impact)
         {
             if (other.team != team)
             {
@@ -208,6 +205,9 @@ public class ModifierData
 {
     public string name;
     public string description;
+    public string damage;
+    public float cooldown;
+
     public int?  damage_multiplier; //just a buuuuunch of optional fields!!
     public int? mana_multiplier;
     public int? speed_multiplier;
@@ -274,9 +274,9 @@ public class Doubler : SpellModifier
             { "wave", wave }
         };
 
-        return RPNEvaluator.RPNEvaluator.Evaluate(data.cooldown, vars);
+        return data.cooldown;
     }
-    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team, int power, int wave)
+    public override IEnumerator Cast(UnityEngine.Vector3 where, UnityEngine.Vector3 target, Hittable.Team team, int power, int wave)
     {
         yield return preSpell.Cast(where, target, team, power, wave);
         yield return new WaitForSeconds(data.delay.GetValueOrDefault());
@@ -295,14 +295,14 @@ public class Splitter : SpellModifier
     {
         return preSpell.GetManaCost(spellpower);
     }
-    public override IEnumerator Cast(Vector3 where, Vector3 target, Hittable.Team team, int power, int wave)
+    public override IEnumerator Cast(UnityEngine.Vector3 where, UnityEngine.Vector3 target, Hittable.Team team, int power, int wave)
     {
-        Vector3 dir = (target - where).normalized;
+        UnityEngine.Vector3 dir = (target - where).normalized;
 
         float angle = data.angle ?? 0;
 
-        Vector3 dir1 = Quaternion.Euler(0, 0, angle) * dir;
-        Vector3 dir2 = Quaternion.Euler(0, 0, -angle) * dir;
+        UnityEngine.Vector3 dir1 = Quaternion.Euler(0, 0, angle) * dir;
+        UnityEngine.Vector3 dir2 = Quaternion.Euler(0, 0, -angle) * dir;
 
         yield return preSpell.Cast(where, where + dir1, team, power, wave);
         yield return preSpell.Cast(where, where + dir2, team, power, wave);
@@ -313,10 +313,11 @@ public class Chaos : SpellModifier
 {
     private ModifierData data;
 
-    public Chaos(Spell inner, ModifierData modInfo): base(inner)
+    public Chaos(Spell inner, ModifierData modInfo) : base(inner)
     {
         data = modInfo;
     }
+
     public override int GetDamage(int spellpower, int wave)
     {
         int baseDamage = preSpell.GetDamage(spellpower, wave);
@@ -328,13 +329,13 @@ public class Chaos : SpellModifier
             { "base", baseDamage }
         };
 
-        return RPNEvaluator.RPNEvaluator.Evaluate(data.damage.amount, vars);
+        return RPNEvaluator.RPNEvaluator.Evaluate(data.damage, vars);
     }
+
     public override string GetTrajectory()
     {
         return data.projectile_trajectory ?? preSpell.GetTrajectory();
     }
-
 }
 
 public class Homing : SpellModifier
