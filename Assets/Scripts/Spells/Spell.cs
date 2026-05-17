@@ -55,6 +55,19 @@ public class Spell
         this.data = spelldata;
     }
 
+    protected float Eval(string expression)
+    {
+        if (string.IsNullOrEmpty(expression))
+            return 0;
+
+        return (float)RPNEvaluator.RPNEvaluator.Evaluate(expression, GetRpnVars()); 
+    }
+
+    protected Dictionary<string, int> GetRpnVars()
+    {
+       // the part im confused on. fields like damage.amount for example rely on RPN calculations being made based on power or waves
+    }
+
     public virtual string GetName()
     {
         return data.name;
