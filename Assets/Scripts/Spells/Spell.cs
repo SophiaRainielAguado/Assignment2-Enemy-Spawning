@@ -200,13 +200,13 @@ public class DamageAmpModifier : SpellModifier //and spell modifier draws from t
 public class SpeedAmp : SpellModifier
 {
     private ModifierData data;
-    public SpeedAmpModifier(Spell inner, ModifierData modInfo) : base(inner)
+    public SpeedAmp(Spell inner, ModifierData modInfo) : base(inner)
     {
         data = modInfo;
     }
     protected override float GetProjectileSpeed()
     {
-        float multiplier  = data.speed_multiplier;
+        int multiplier  = data.speed_multiplier;
         return preSpell.GetProjectileSpeed() * multiplier;
     }
 }
@@ -218,7 +218,7 @@ public class Doubler : SpellModifier
     {
         data = modInfo;
     }
-    protected override float GetManaCost()
+    protected override int GetManaCost()
     {
         return preSpell.GetManaCost() * data.mana_multiplier;
     }
@@ -267,13 +267,13 @@ public class Chaos : SpellModifier
     {
         data = modInfo;
     }
-    protected override float GetDamage()
+    protected override int GetDamage()
     {
         return preSpell.GetDamage(); // multiply and calculate damage with RPN
     }
-    protected override float GetTrajectory()
+    protected override string GetTrajectory()
     {
-        return data.projectile_trajectory;
+        return data.projectile_trajectory ?? preSpell.GetTrajectory();
     }
 
 }
@@ -285,17 +285,17 @@ public class Homing : SpellModifier
     {
         data = modInfo;
     }
-    protected override float GetDamage()
+    protected override int GetDamage()
     {
-        return preSpell.GetDamage() * data.damage_multiplier;
+        return preSpell.GetDamage() * data.damage_multiplier ?? 1;
     }
-    protected override float GetManaCost()
+    protected override int GetManaCost()
     {
-        return preSpell.GetManaCost() + data.mana_adder;
+        return preSpell.GetManaCost() + data.mana_adder ?? 0;
     }
-    protected override float GetTrajectory()
+    protected override string GetTrajectory()
     {
-        return data.projectile_trajectory;
+        return data.projectile_trajectory ?? preSpell.GetTrajectory();
     }
 }
 
