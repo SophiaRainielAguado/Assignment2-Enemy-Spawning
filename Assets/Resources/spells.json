@@ -86,6 +86,22 @@
        "mana_adder": "10",
        "projectile_trajectory": "homing",
        "category": "Modifier spell"
+   },
+   "cursed":{
+    "name": "cursed",
+    "description": "Spell is cast after a slight delay, and does slightly less damage.",
+    "damage_multiplier": "0.9",
+    "delay": "0.33"
+   },
+   "reverse":{
+    "name": "reverse",
+    "description": "Fires in the exact opposite direction you'd like to fire in." 
+   },
+   "slow":{
+    "name": "slow",
+    "description": "Slows down projectile speed, but with greatly increased damage.",
+    "damage_multiplier": "2",
+    "speed_multiplier": "0.66"
    }
 
 }

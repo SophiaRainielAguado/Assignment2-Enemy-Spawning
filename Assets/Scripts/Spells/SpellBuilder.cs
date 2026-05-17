@@ -3,6 +3,7 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Reflection;
 
 
 
@@ -60,6 +61,12 @@ public class SpellModifierBuilder
                 return new Chaos(spell,modifierInfo);
             case "homing":
                 return new Homing(spell,modifierInfo);
+            case "cursed":
+                return new Cursed(spell, modifierInfo);
+            case "reverse":
+                return new Reverse(spell, modifierInfo);
+            case "slow":
+                return new Slow(spell, modifierInfo);
         }
         return spell;
     }

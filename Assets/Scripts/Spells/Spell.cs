@@ -2,6 +2,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using System.Numerics;
+using System.ComponentModel.DataAnnotations;
 
 public class SpellData // can be used for all the base spells; some fields will be left null 
 {
@@ -284,6 +286,54 @@ public class Doubler : SpellModifier
     }
 }
 
+public class Cursed : SpellModifier
+{
+    private ModifierData data;
+    public Cursed(Spell inner, ModifierData modInfo) : base(inner)
+    {
+        data = modInfo;
+    }
+
+  public override int GetDamage(int spellpower, int wave)
+    {
+        int mult = data.damage_multiplier ?? 1;
+        return preSpell.GetDamage(spellpower, wave) * mult;
+    }
+
+    public override IEnumerator Cast(UnityEngine.Vector3 where, UnityEngine.Vector3 target, Hittable.Team team, int power, int wave)
+    {
+        yield return new WaitForSeconds(data.delay.GetValueOrDefault());
+        yield return preSpell.Cast(where, target, team, power, wave);
+    }
+    
+}
+public class Reverse : SpellModifier
+{
+    private ModifierData data;
+    public Reverse(Spell inner, ModifierData modInfo) : base(inner)
+    {
+        data = modInfo;
+    }
+    public override IEnumerator Cast(UnityEngine.Vector3 where, UnityEngine.Vector3 target, Hittable.Team team, int power, int wave){
+
+        Vector3 reversedTarget = where - (target - where);
+         yield return preSpell.Cast(where, reversedTarget, team, power, wave);
+    }
+}
+public class Slow : SpellModifier
+{
+    private ModifierData data;
+    public Slow(Spell inner, ModifierData modInfo) : base(inner)
+    {
+        data = modInfo;
+    }
+    public override float GetProjectileSpeed(int spellpower, int wave)
+    {
+        int multiplier = data.speed_multiplier ?? 1;
+        return preSpell.GetProjectileSpeed(spellpower, wave) * multiplier;
+    }
+
+}
 public class Splitter : SpellModifier
 {
     private ModifierData data;

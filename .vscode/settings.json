@@ -67,5 +67,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "CMPM121Framework-main.slnx"
+    "dotnet.defaultSolution": "Assignment2-Enemy-Spawning.slnx"
 }
