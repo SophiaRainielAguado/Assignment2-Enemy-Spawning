@@ -12,12 +12,9 @@ public class EnemySpawner : MonoBehaviour
 {
     Dictionary<string, EnemyInfo> enemies; //creates dictionary that will store enemies
     Dictionary<string, Level> levels; // creates dictionary that will store levels
-<<<<<<< Updated upstream
-=======
     Dictionary<string, PlayerClass> classes;
     Dictionary<string, SpellData> spells;
     Dictionary<string, ModifierData> modspells;
->>>>>>> Stashed changes
 
     public Image level_selector;
     public GameObject button;
@@ -33,12 +30,9 @@ public class EnemySpawner : MonoBehaviour
     public TMP_Text gameOverText;
 
     private Level currentLevel;
-<<<<<<< Updated upstream
     private int currentWave = 0;
-=======
     public int currentWave = 0;
     private PlayerClass currentClass;
->>>>>>> Stashed changes
     private int enemiesKilledThisWave = 0;
     private float waveStartTime;
     private float waveDuration;
@@ -70,10 +64,9 @@ public class EnemySpawner : MonoBehaviour
             levels[l.name] = l;
         }
 
-<<<<<<< Updated upstream
         int i = 0;
         foreach (var item in levels) //for every difficulty made
-=======
+
         //PLAYER CLASSES LOADING
         classes = new Dictonary<string, PlayerClass>();
         var classText = Resources.Load<TextAsset>("classes").text;
@@ -84,6 +77,7 @@ public class EnemySpawner : MonoBehaviour
             PlayerClass pc = pair.Value.ToObject<PlayerClass>();
             classes[pair.Key] = pc;
         }
+
         // SPELLS LOADING
         var spellText = Resources.Load<TextAsset>("spells");
         var spellJson = JToken.Parse(spellText.text);
@@ -92,7 +86,7 @@ public class EnemySpawner : MonoBehaviour
         modspells = new Dictionary<string, ModifierData>();
 
         foreach (var spellToken in spellJson)
->>>>>>> Stashed changes
+
         {
             string levelname = item.Key;
             GameObject selector = Instantiate(button, level_selector.transform);
@@ -208,8 +202,6 @@ public class EnemySpawner : MonoBehaviour
 
         var player = GameManager.Instance.player.GetComponent<PlayerController>();
 
-<<<<<<< Updated upstream
-=======
         // RPN variables
         var vars = new Dictionary<string, int>()
         {
@@ -242,7 +234,6 @@ public class EnemySpawner : MonoBehaviour
         // restart mana regeneration
         player.StartCoroutine(player.spellcaster.ManaRegeneration());
 
->>>>>>> Stashed changes
         if (!playerDeathHooked)
         {
             playerDeathHooked = true;
@@ -494,8 +485,6 @@ public class EnemySpawner : MonoBehaviour
         public int speed;   // speed of enemy
         public int damage;  // damage of enemy (base value)
     }
-<<<<<<< Updated upstream
-=======
 
     // Stroes player class info from classes.json
     public class PlayerClass
@@ -543,5 +532,4 @@ public class EnemySpawner : MonoBehaviour
 
         player.spellcaster.SetSpell(reward.name);
     }
->>>>>>> Stashed changes
 }
