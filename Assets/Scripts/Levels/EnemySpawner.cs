@@ -12,6 +12,12 @@ public class EnemySpawner : MonoBehaviour
 {
     Dictionary<string, EnemyInfo> enemies; //creates dictionary that will store enemies
     Dictionary<string, Level> levels; // creates dictionary that will store levels
+<<<<<<< Updated upstream
+=======
+    Dictionary<string, PlayerClass> classes;
+    Dictionary<string, SpellData> spells;
+    Dictionary<string, ModifierData> modspells;
+>>>>>>> Stashed changes
 
     public Image level_selector;
     public GameObject button;
@@ -27,7 +33,12 @@ public class EnemySpawner : MonoBehaviour
     public TMP_Text gameOverText;
 
     private Level currentLevel;
+<<<<<<< Updated upstream
     private int currentWave = 0;
+=======
+    public int currentWave = 0;
+    private PlayerClass currentClass;
+>>>>>>> Stashed changes
     private int enemiesKilledThisWave = 0;
     private float waveStartTime;
     private float waveDuration;
@@ -39,6 +50,7 @@ public class EnemySpawner : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        // LEVELS LOADING
         Debug.Log(typeof(RPNEvaluator.RPNEvaluator));
         enemies = new Dictionary<string, EnemyInfo>(); // go over enemies.json to get all possible enemies
         var enemytext = Resources.Load<TextAsset>("enemies");
@@ -58,8 +70,29 @@ public class EnemySpawner : MonoBehaviour
             levels[l.name] = l;
         }
 
+<<<<<<< Updated upstream
         int i = 0;
         foreach (var item in levels) //for every difficulty made
+=======
+        //PLAYER CLASSES LOADING
+        classes = new Dictonary<string, PlayerClass>();
+        var classText = Resources.Load<TextAsset>("classes").text;
+        JObject classJson = JObject.Pase(classText.text);
+
+        foreach (var pair in classJson)
+        { 
+            PlayerClass pc = pair.Value.ToObject<PlayerClass>();
+            classes[pair.Key] = pc;
+        }
+        // SPELLS LOADING
+        var spellText = Resources.Load<TextAsset>("spells");
+        var spellJson = JToken.Parse(spellText.text);
+
+        spells = new Dictionary<string, SpellData>();
+        modspells = new Dictionary<string, ModifierData>();
+
+        foreach (var spellToken in spellJson)
+>>>>>>> Stashed changes
         {
             string levelname = item.Key;
             GameObject selector = Instantiate(button, level_selector.transform);
@@ -163,6 +196,7 @@ public class EnemySpawner : MonoBehaviour
 
         // Find Level in Levels; loops through JObjects, looks at name. Return match
         currentLevel = levels[levelname];
+        currentClass = classes["mage"]; // THIS IS CURRENTLY HARD CODED!! MAKE CLASS SELECTION MENU
         if (currentLevel == null)
         {
             Debug.LogError("Level not found:" + levelname);
@@ -174,6 +208,41 @@ public class EnemySpawner : MonoBehaviour
 
         var player = GameManager.Instance.player.GetComponent<PlayerController>();
 
+<<<<<<< Updated upstream
+=======
+        // RPN variables
+        var vars = new Dictionary<string, int>()
+        {
+            { "wave", currentWave }
+        };
+
+        // Evaluate player stats
+        int playerHP = RPNEvaluator.RPNEvaluator.Evaluate("95 wave 5 * +", vars);
+        int playerMana = RPNEvaluator.RPNEvaluator.Evaluate("90 wave 10 * +", vars);
+        int playerManaRegen = RPNEvaluator.RPNEvaluator.Evaluate("10 wave +", vars);
+        int playerSpellPower = RPNEvaluator.RPNEvaluator.Evaluate("wave 10 *", vars);
+        int playerSpeed = RPNEvaluator.RPNEvaluator.Evaluate("5", vars);
+
+        // Preserve HP percentage
+        player.hp.SetMaxHP(playerHP);
+
+        // Update spellcaster stats
+        player.spellcaster.max_mana = playerMana;
+        player.spellcaster.mana_reg = playerManaRegen;
+        player.spellcaster.spellpower = playerSpellPower;
+
+        // Update movement speed
+        player.speed = playerSpeed;
+
+        // Refresh UI
+        player.healthui.SetHealth(player.hp);
+        player.manaui.SetSpellCaster(player.spellcaster);
+        player.spellui.SetSpell(player.spellcaster.spell);
+
+        // restart mana regeneration
+        player.StartCoroutine(player.spellcaster.ManaRegeneration());
+
+>>>>>>> Stashed changes
         if (!playerDeathHooked)
         {
             playerDeathHooked = true;
@@ -425,4 +494,54 @@ public class EnemySpawner : MonoBehaviour
         public int speed;   // speed of enemy
         public int damage;  // damage of enemy (base value)
     }
+<<<<<<< Updated upstream
+=======
+
+    // Stroes player class info from classes.json
+    public class PlayerClass
+    {
+        public string health;
+        public string mana;
+        public string spellpower;
+        public string speed;
+    }
+    void ScalePlayerStats(int wave)
+    {
+        var player = GameManager.Instance.player.GetComponent<PlayerController>();
+
+        var vars = new Dictionary<string, int>()
+    {
+        { "wave", wave }
+    };
+
+        int playerHP = RPNEvaluator.RPNEvaluator.Evaluate("95 wave 5 * +", vars);
+        int playerMana = RPNEvaluator.RPNEvaluator.Evaluate("90 wave 10 * +", vars);
+        int playerManaRegen = RPNEvaluator.RPNEvaluator.Evaluate("10 wave +", vars);
+        int playerSpeed = RPNEvaluator.RPNEvaluator.Evaluate("5", vars);
+
+        player.hp.SetMaxHP(playerHP);
+        player.spellcaster.max_mana = playerMana;
+        player.spellcaster.mana_reg = playerManaRegen;
+        player.spellcaster.spellpower = playerSpellPower;
+        player.speed = playerSpeed;
+
+        player.healthui.SetHealth(player.hp);
+        player.manaui.SetSpellCaster(player.spellcaster);
+        player.spellui.SetSpell(player.spellcaster.spell);
+    }
+
+    void GiveSpellReward()
+    {
+        var list = spells.Values.ToList();
+
+        if (list.Count == 0)
+            return;
+
+        SpellData reward = list[Random.Range(0, list.Count)];
+
+        var player = GameManager.Instance.player.GetComponent<PlayerController>();
+
+        player.spellcaster.SetSpell(reward.name);
+    }
+>>>>>>> Stashed changes
 }
