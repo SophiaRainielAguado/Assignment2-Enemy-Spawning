@@ -31,7 +31,6 @@ public class EnemySpawner : MonoBehaviour
 
     private Level currentLevel;
     private int currentWave = 0;
-    public int currentWave = 0;
     private PlayerClass currentClass;
     private int enemiesKilledThisWave = 0;
     private float waveStartTime;
