@@ -23,6 +23,7 @@ public class EnemySpawner : MonoBehaviour
     public GameObject winUI;
     public GameObject waveEndUI;
     public SpawnPoint[] SpawnPoints;
+    public SpellData currentSpellData;
 
     public TMP_Text waveText;
     public TMP_Text enemiesKilledText;
@@ -63,13 +64,10 @@ public class EnemySpawner : MonoBehaviour
             levels[l.name] = l;
         }
 
-        int i = 0;
-        foreach (var item in levels) //for every difficulty made
-
         //PLAYER CLASSES LOADING
-        classes = new Dictonary<string, PlayerClass>();
-        var classText = Resources.Load<TextAsset>("classes").text;
-        JObject classJson = JObject.Pase(classText.text);
+        classes = new Dictionary<string, PlayerClass>();
+        string classText = Resources.Load<TextAsset>("classes").text;
+        JObject classJson = JObject.Parse(classText);
 
         foreach (var pair in classJson)
         { 
@@ -83,19 +81,31 @@ public class EnemySpawner : MonoBehaviour
 
         spells = new Dictionary<string, SpellData>();
         modspells = new Dictionary<string, ModifierData>();
-
+        int i = 0;
         foreach (var spellToken in spellJson)
+        {
+            JProperty property = (JProperty)spellToken;
 
+            string spellName = property.Name;
+            SpellData spellData = property.Value.ToObject<SpellData>();
+
+            spells[spellName] = spellData;
+        }
+
+        int j = 0;
+        foreach (var item in levels)    // for every difficulty made
         {
             string levelname = item.Key;
             GameObject selector = Instantiate(button, level_selector.transform);
-            selector.transform.localPosition = new Vector3(0, 115 - ( 75 *i));
+
+            selector.transform.localPosition =
+                new Vector3(0, 115 - (75 * i));
             selector.GetComponent<MenuSelectorController>().spawner = this;
-            selector.GetComponent<MenuSelectorController>().SetLevel(levelname);
-            i++;
+            selector.GetComponent<MenuSelectorController>()
+                .SetLevel(levelname);
+
+            j++;
         }
-
-
 
     }
 
@@ -198,8 +208,8 @@ public class EnemySpawner : MonoBehaviour
 
         // Assign the selected level when player clicks button
         GameManager.Instance.player.GetComponent<PlayerController>().StartLevel();
-
         var player = GameManager.Instance.player.GetComponent<PlayerController>();
+        player.spellcaster.SetSpell(spells["arcane_bolt"]);
 
         // RPN variables
         var vars = new Dictionary<string, int>()
@@ -247,6 +257,7 @@ public class EnemySpawner : MonoBehaviour
 
         // Start first wave
         currentWave = 1;    // increment wave count
+        GameManager.Instance.currentWave = currentWave;
         StartCoroutine(WaveLoop());
     }
 
@@ -294,6 +305,7 @@ public class EnemySpawner : MonoBehaviour
 
             int completedWave = currentWave;
             currentWave++;
+            GameManager.Instance.currentWave = currentWave;
             GameManager.Instance.state = GameManager.GameState.WAVEEND;
 
             waitingForNextWave = true;
@@ -505,6 +517,7 @@ public class EnemySpawner : MonoBehaviour
         int playerHP = RPNEvaluator.RPNEvaluator.Evaluate("95 wave 5 * +", vars);
         int playerMana = RPNEvaluator.RPNEvaluator.Evaluate("90 wave 10 * +", vars);
         int playerManaRegen = RPNEvaluator.RPNEvaluator.Evaluate("10 wave +", vars);
+        int playerSpellPower = RPNEvaluator.RPNEvaluator.Evaluate("wave 10 *", vars);
         int playerSpeed = RPNEvaluator.RPNEvaluator.Evaluate("5", vars);
 
         player.hp.SetMaxHP(playerHP);
@@ -529,6 +542,6 @@ public class EnemySpawner : MonoBehaviour
 
         var player = GameManager.Instance.player.GetComponent<PlayerController>();
 
-        player.spellcaster.SetSpell(reward.name);
+        player.spellcaster.SetSpell(reward);
     }
 }

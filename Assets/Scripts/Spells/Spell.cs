@@ -2,8 +2,6 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using System.Numerics;
-using System.ComponentModel.DataAnnotations;
 
 public class SpellData // can be used for all the base spells; some fields will be left null 
 {
@@ -210,14 +208,14 @@ public class ModifierData
     public string damage;
     public float cooldown;
 
-    public int? damage_multiplier; //just a buuuuunch of optional fields!!
+    public int? damage_multiplier;
     public int? mana_multiplier;
     public int? speed_multiplier;
-    public int? cooldown_multiplier;
-    public int? angle;
-    public int? delay;
-    public string? projectile_trajectory;
+    public float? cooldown_multiplier;
+    public float? angle;
+    public float? delay;
     public int? mana_adder;
+    public string? projectile_trajectory;
     public string category;
 
 }

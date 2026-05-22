@@ -27,7 +27,8 @@ public class PlayerController : MonoBehaviour
 
     public void StartLevel()
     {
-        spellcaster = new SpellCaster(125, 8, Hittable.Team.PLAYER);
+        spellcaster = new SpellCaster(125, 8, 12, Hittable.Team.PLAYER, GameManager.Instance.spells["arcane_bolt"]);
+        //hardcoded for now but its mana, mana_reg, spellpower, team
         StartCoroutine(spellcaster.ManaRegeneration());
         
         hp = new Hittable(100, Hittable.Team.PLAYER, gameObject);
@@ -52,7 +53,8 @@ public class PlayerController : MonoBehaviour
         Vector2 mouseScreen = Mouse.current.position.value;
         Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(mouseScreen);
         mouseWorld.z = 0;
-        StartCoroutine(spellcaster.Cast(transform.position, mouseWorld));
+        int wave = GameManager.Instance.currentWave;
+        StartCoroutine(spellcaster.Cast(transform.position, mouseWorld, wave));
     }
 
     void OnMove(InputValue value)

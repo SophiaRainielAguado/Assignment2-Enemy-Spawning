@@ -13,6 +13,7 @@ public class SpellUI : MonoBehaviour
     float last_text_update;
     const float UPDATE_DELAY = 1;
     public GameObject dropbutton;
+    public SpellCaster spellcaster;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -26,26 +27,31 @@ public class SpellUI : MonoBehaviour
         GameManager.Instance.spellIconManager.PlaceSprite(spell.GetIcon(), icon.GetComponent<Image>());
     }
 
+    public void SetSpellCaster(SpellCaster caster)
+    {
+        spellcaster = caster;
+    }
+
     // Update is called once per frame
     void Update()
     {
         if (spell == null) return;
         if (Time.time > last_text_update + UPDATE_DELAY)
         {
-            manacost.text = spell.GetManaCost().ToString();
-            damage.text = spell.GetDamage().ToString();
+            manacost.text = spell.GetManaCost(spellcaster.spellpower).ToString();
+            damage.text = spell.GetDamage(spellcaster.spellpower, GameManager.Instance.currentWave).ToString();
             last_text_update = Time.time;
         }
         
         float since_last = Time.time - spell.last_cast;
         float perc;
-        if (since_last > spell.GetCooldown())
+        if (since_last > spell.GetCooldown(spellcaster.spellpower, GameManager.Instance.currentWave))
         {
             perc = 0;
         }
         else
         {
-            perc = 1-since_last / spell.GetCooldown();
+            perc = 1-since_last / spell.GetCooldown(spellcaster.spellpower, GameManager.Instance.currentWave);
         }
         cooldown.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 48 * perc);
     }
