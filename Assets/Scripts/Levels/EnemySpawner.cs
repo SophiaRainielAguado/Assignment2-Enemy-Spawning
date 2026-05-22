@@ -64,6 +64,17 @@ public class EnemySpawner : MonoBehaviour
             levels[l.name] = l;
         }
 
+        int i = 0;
+        foreach (var item in levels) //for every difficulty made
+        {
+            string levelname = item.Key;
+            GameObject selector = Instantiate(button, level_selector.transform);
+            selector.transform.localPosition = new Vector3(0, 115 - (75 * i));
+            selector.GetComponent<MenuSelectorController>().spawner = this;
+            selector.GetComponent<MenuSelectorController>().SetLevel(levelname);
+            i++;
+        }
+
         //PLAYER CLASSES LOADING
         classes = new Dictionary<string, PlayerClass>();
         string classText = Resources.Load<TextAsset>("classes").text;
@@ -81,7 +92,7 @@ public class EnemySpawner : MonoBehaviour
 
         spells = new Dictionary<string, SpellData>();
         modspells = new Dictionary<string, ModifierData>();
-        int i = 0;
+        i = 0;
         foreach (var spellToken in spellJson)
         {
             JProperty property = (JProperty)spellToken;
@@ -91,22 +102,6 @@ public class EnemySpawner : MonoBehaviour
 
             spells[spellName] = spellData;
         }
-
-        int j = 0;
-        foreach (var item in levels)    // for every difficulty made
-        {
-            string levelname = item.Key;
-            GameObject selector = Instantiate(button, level_selector.transform);
-
-            selector.transform.localPosition =
-                new Vector3(0, 115 - (75 * i));
-            selector.GetComponent<MenuSelectorController>().spawner = this;
-            selector.GetComponent<MenuSelectorController>()
-                .SetLevel(levelname);
-
-            j++;
-        }
-
     }
 
     // Update is called once per frame
