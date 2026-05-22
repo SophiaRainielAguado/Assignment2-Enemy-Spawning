@@ -88,20 +88,29 @@ public class EnemySpawner : MonoBehaviour
 
         // SPELLS LOADING
         var spellText = Resources.Load<TextAsset>("spells");
-        var spellJson = JToken.Parse(spellText.text);
+        JObject spellJson = JObject.Parse(spellText.text);
 
         spells = new Dictionary<string, SpellData>();
         modspells = new Dictionary<string, ModifierData>();
-        i = 0;
-        foreach (var spellToken in spellJson)
+
+        foreach (var pair in spellJson)
         {
-            JProperty property = (JProperty)spellToken;
-
-            string spellName = property.Name;
-            SpellData spellData = property.Value.ToObject<SpellData>();
-
-            spells[spellName] = spellData;
+            // Base spells
+            if (pair.Value["projectile"] != null)
+            {
+                SpellData spell = pair.Value.ToObject<SpellData>();
+                spells[pair.Key] = spell;
+            }
+            // Modifier spells
+            else
+            {
+                ModifierData mod = pair.Value.ToObject<ModifierData>();
+                modspells[pair.Key] = mod;
+            }
         }
+
+        // IMPORTANT
+        GameManager.Instance.spells = spells;
     }
 
     // Update is called once per frame
