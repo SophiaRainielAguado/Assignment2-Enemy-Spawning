@@ -21,4 +21,13 @@ public class EventBus
         OnDamage?.Invoke(where, dmg, target);
     }
 
+    public event Action<SpellCaster, int> WhenManaGained;
+
+    public void ManaIncrease(SpellCaster caster, int amount)
+    {
+        WhenManaGained?.Invoke(caster, amount);
+    }
+
 }
+
+
