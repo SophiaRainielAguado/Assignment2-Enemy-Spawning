@@ -26,3 +26,18 @@ public class TriggerInfo
     public virtual string? amount;
 
 }
+public abstract class Relic
+{
+    public RelicData data;
+    public SpellCaster owner;
+
+    public Relic(SpellCaster owner, RelicData data)
+    {
+        this.owner = owner;
+        this.data = data;
+    }
+
+    public abstract void Register();
+    public abstract void Unregister();
+}
+
