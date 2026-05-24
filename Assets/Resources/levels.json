@@ -78,7 +78,7 @@
         "count": "2 wave 2 * *",
         "hp": "base 10 wave + +",
         "delay": "5",
-        "sequence": [ 8, 4, 8, ],
+        "sequence": [ 8, 4, 8],
         "location": "random"
       },
       {
