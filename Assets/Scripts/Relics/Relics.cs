@@ -5,8 +5,8 @@ using Newtonsoft.Json.Linq;
 
 public class RelicData
 {
-    public virtual string name;
-    public virtual int sprite;
+    public  string name;
+    public  int sprite;
     public TriggerInfo trigger;
     public EffectInfo effect;
 
@@ -14,16 +14,16 @@ public class RelicData
 
 public class EffectInfo
 {
-    public virtual string description;
-    public virtual string type;
-    public virtual string amount;
-    public virtual string? until;
+    public  string description;
+    public  string type;
+    public  string amount;
+    public  string? until;
 }
 public class TriggerInfo
 {
-    public virtual string description;
-    public virtual string type;
-    public virtual string? amount;
+    public  string description;
+    public  string type;
+    public  string? amount;
 
 }
 public class Relic
@@ -59,7 +59,7 @@ public class Relic
 
     public void Activate()
     {
-        effect.Activate(owner);
+        effect.Activate(owner, GameManager.Instance.currentWave);
     }
 }
 
@@ -117,12 +117,13 @@ public abstract class RelicTrigger
 {
     public TriggerInfo data;
 
-    public RelicTrigger(EffectInfo data)
+    public RelicTrigger(TriggerInfo data)
     {
         this.data = data;
     }
 
-    public abstract void Activate(SpellCaster owner);
+    public abstract void Register(Relic relic);
+    public abstract void Unregister(Relic relic);
 }
 
 public class TakeDamageTrigger : RelicTrigger
