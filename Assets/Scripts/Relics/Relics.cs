@@ -72,7 +72,7 @@ public abstract class RelicEffect
         this.data = data;
     }
 
-    public abstract void Activate(SpellCaster owner);
+    public abstract void Activate(SpellCaster owner, int wave);
 }
 
 public class GainManaEffect : RelicEffect
@@ -84,8 +84,7 @@ public class GainManaEffect : RelicEffect
     {
         var vars = new Dictionary<string, int>()
         {
-            { "wave", wave},
-            { "power", owner.spellpower}
+           
         };
 
         int amount = RPNEvaluator.RPNEvaluator.Evaluate(data.amount, vars);
@@ -93,10 +92,26 @@ public class GainManaEffect : RelicEffect
         owner.mana += amount;
         owner.mana = Mathf.Min(owner.mana, owner.max_mana);
     }
-
-
 }
 
+public class GainSpellpowerEffect : RelicEffect
+{
+    public GainSpellpowerEffect(EffectInfo data) : base(data)
+    {
+    }
+
+    public override void Activate (SpellCaster owner, int wave)
+    {
+        var vars = new Dictionary<string, int>()
+        {
+             { "wave", wave},
+            { "power", owner.spellpower}
+        };
+        
+        int amount = RPNEvaluator.RPNEvaluator.Evaluate(data.amount, vars);
+        owner.spellpower += amount;
+    }
+}
 public abstract class TriggerEffect
 {
     public TriggerInfo data;
