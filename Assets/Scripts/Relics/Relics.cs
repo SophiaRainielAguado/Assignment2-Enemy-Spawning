@@ -17,13 +17,13 @@ public class EffectInfo
     public  string description;
     public  string type;
     public  string amount;
-    public  string? until;
+    public  string until;
 }
 public class TriggerInfo
 {
     public  string description;
     public  string type;
-    public  string? amount;
+    public  string amount;
 
 }
 public class Relic
@@ -126,34 +126,34 @@ public abstract class RelicTrigger
     public abstract void Unregister(Relic relic);
 }
 
-public class TakeDamageTrigger : RelicTrigger
-{
-    private Relic relic;
-
-    public TakeDamageTrigger(TriggerInfo data) : base(data)
+     public class TakeDamageTrigger : RelicTrigger
     {
-    }
+        private Relic relic;
 
-    public override void Register(Relic relic)
-    {
-        this.relic = relic;
-
-        EventBus.Instance.OnDamageTaken += HandleDamage;
-    }
-
-    public override void Unregister(Relic relic)
-    {
-        EventBus.Instance.OnDamageTaken -= HandleDamage;
-    }
-
-    void HandleDamage(Hittable target, Damage dmg)
-    {
-        if (target.team == Hittable.Team.PLAYER)
+        public TakeDamageTrigger(TriggerInfo data) : base(data)
         {
-            relic.Activate();
         }
-    }
-}
+
+        public override void Register(Relic relic)
+        {
+            this.relic = relic;
+
+            EventBus.Instance.OnDamage += HandleDamage;
+        }
+
+        public override void Unregister(Relic relic)
+        {
+            EventBus.Instance.OnDamage -= HandleDamage;
+        }
+
+         void HandleDamage(Vector3 where, Damage dmg, Hittable target)
+        {
+            if (target.team == Hittable.Team.PLAYER)
+            {
+                relic.Activate();
+            }
+        }
+    } 
 
 
 
