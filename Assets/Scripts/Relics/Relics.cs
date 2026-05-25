@@ -84,7 +84,8 @@ public class GainManaEffect : RelicEffect
     {
         var vars = new Dictionary<string, int>()
         {
-           
+          { "wave", wave},
+            { "power", owner.spellpower} 
         };
 
         int amount = RPNEvaluator.RPNEvaluator.Evaluate(data.amount, vars);
@@ -112,16 +113,45 @@ public class GainSpellpowerEffect : RelicEffect
         owner.spellpower += amount;
     }
 }
-public abstract class TriggerEffect
+public abstract class RelicTrigger
 {
     public TriggerInfo data;
 
-    public TriggerEffect(EffectInfo data)
+    public RelicTrigger(EffectInfo data)
     {
         this.data = data;
     }
 
     public abstract void Activate(SpellCaster owner);
+}
+
+public class TakeDamageTrigger : RelicTrigger
+{
+    private Relic relic;
+
+    public TakeDamageTrigger(TriggerInfo data) : base(data)
+    {
+    }
+
+    public override void Register(Relic relic)
+    {
+        this.relic = relic;
+
+        EventBus.Instance.OnDamageTaken += HandleDamage;
+    }
+
+    public override void Unregister(Relic relic)
+    {
+        EventBus.Instance.OnDamageTaken -= HandleDamage;
+    }
+
+    void HandleDamage(Hittable target, Damage dmg)
+    {
+        if (target.team == Hittable.Team.PLAYER)
+        {
+            relic.Activate();
+        }
+    }
 }
 
 
